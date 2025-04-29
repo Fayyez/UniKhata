@@ -1,13 +1,17 @@
-import { useState } from 'react'
+import { Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div>
-      <LoginPage />
-    </div>
+    <AuthProvider>
+      <div>
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
+        </Routes>
+      </div>
+    </AuthProvider>
   )
 }
 

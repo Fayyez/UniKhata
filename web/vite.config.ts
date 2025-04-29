@@ -7,4 +7,11 @@ export default defineConfig({
   plugins: [react(),
     tailwindcss(),
   ],
+  resolve: {
+    alias: {
+      'react': 'react',
+      'react-dom': 'react-dom',
+      'react-router-dom': 'react-router-dom'
+    }
+  }
 })

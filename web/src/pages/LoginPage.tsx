@@ -16,7 +16,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard"); // Redirect to dashboard if already logged in
+      navigate("/dashboard");
     }
 
     window.google.accounts.id.initialize({
