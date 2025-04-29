@@ -1,4 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 declare global {
   interface Window {
@@ -7,7 +9,18 @@ declare global {
 }
 
 const RegisterPage = () => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
   useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard"); // Redirect to dashboard if already logged in
+    }
+
     window.google.accounts.id.initialize({
       client_id: "YOUR_GOOGLE_CLIENT_ID", // 🔁 Replace this
       callback: handleCredentialResponse,
@@ -17,11 +30,35 @@ const RegisterPage = () => {
       document.getElementById("google-signup-btn"),
       { theme: "outline", size: "large" }
     );
-  }, []);
+  }, [isAuthenticated, navigate]);
 
   const handleCredentialResponse = (response: any) => {
     console.log("Google JWT ID Token:", response.credential);
-    // TODO: Send token to backend or decode it
+    // TODO: Send token to backend and get user data
+    // For now, we'll simulate a successful registration
+    const userData = {
+      id: "1",
+      name: "Google User",
+      email: "google@example.com"
+    };
+    login(userData);
+    navigate("/dashboard");
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+    // TODO: Add actual registration logic here
+    const userData = {
+      id: "1",
+      name: name,
+      email: email
+    };
+    login(userData);
+    navigate("/dashboard");
   };
 
   return (
@@ -29,31 +66,46 @@ const RegisterPage = () => {
       <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold text-center mb-6">Create Account</h2>
 
-        <div className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="text"
             placeholder="Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             className="border border-gray-300 rounded-lg px-4 py-2"
+            required
           />
           <input
             type="email"
             placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="border border-gray-300 rounded-lg px-4 py-2"
+            required
           />
           <input
             type="password"
             placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="border border-gray-300 rounded-lg px-4 py-2"
+            required
           />
           <input
             type="password"
             placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             className="border border-gray-300 rounded-lg px-4 py-2"
+            required
           />
-          <button className="bg-blue-600 text-white rounded-lg py-2 hover:bg-blue-700 transition">
+          <button 
+            type="submit"
+            className="bg-blue-600 text-white rounded-lg py-2 hover:bg-blue-700 transition"
+          >
             Register
           </button>
-        </div>
+        </form>
 
         <div className="my-4 text-center text-gray-500">or</div>
         <div id="google-signup-btn" className="flex justify-center" />
