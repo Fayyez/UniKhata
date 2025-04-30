@@ -32,26 +32,33 @@ const LoginPage = () => {
 
   const handleCredentialResponse = (response: any) => {
     console.log("Google JWT ID Token:", response.credential);
-    // TODO: Send token to backend and get user data
-    // For now, we'll simulate a successful login
     const userData = {
       id: "1",
       name: "Google User",
       email: "google@example.com"
     };
-    login(userData);
+    const tokens = {
+      accessToken: response.credential,
+      refreshToken: "google_refresh_token",
+      expiresIn: Date.now() + 3600000 // 1 hour from now
+    };
+    login(userData, tokens);
     navigate("/dashboard");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Add actual authentication logic here
     const userData = {
       id: "1",
       name: "Test User",
       email: email
     };
-    login(userData);
+    const tokens = {
+      accessToken: "dummy_access_token",
+      refreshToken: "dummy_refresh_token",
+      expiresIn: Date.now() + 3600000 // 1 hour from now
+    };
+    login(userData, tokens);
     navigate("/dashboard");
   };
 

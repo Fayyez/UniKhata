@@ -34,14 +34,17 @@ const RegisterPage = () => {
 
   const handleCredentialResponse = (response: any) => {
     console.log("Google JWT ID Token:", response.credential);
-    // TODO: Send token to backend and get user data
-    // For now, we'll simulate a successful registration
     const userData = {
       id: "1",
       name: "Google User",
       email: "google@example.com"
     };
-    login(userData);
+    const tokens = {
+      accessToken: response.credential,
+      refreshToken: "google_refresh_token",
+      expiresIn: Date.now() + 3600000
+    };
+    login(userData, tokens);
     navigate("/dashboard");
   };
 
@@ -51,13 +54,17 @@ const RegisterPage = () => {
       alert("Passwords do not match!");
       return;
     }
-    // TODO: Add actual registration logic here
     const userData = {
       id: "1",
       name: name,
       email: email
     };
-    login(userData);
+    const tokens = {
+      accessToken: "dummy_access_token",
+      refreshToken: "dummy_refresh_token",
+      expiresIn: Date.now() + 3600000
+    };
+    login(userData, tokens);
     navigate("/dashboard");
   };
 
