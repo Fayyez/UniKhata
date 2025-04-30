@@ -63,9 +63,9 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+      <div className="bg-white dark:bg-gray-700 p-8 rounded-xl shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">Login</h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
@@ -73,7 +73,7 @@ const LoginPage = () => {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="border border-gray-300 rounded-lg px-4 py-2"
+            className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             required
           />
           <input
@@ -81,7 +81,7 @@ const LoginPage = () => {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="border border-gray-300 rounded-lg px-4 py-2"
+            className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             required
           />
           <button 
@@ -92,12 +92,12 @@ const LoginPage = () => {
           </button>
         </form>
 
-        <div className="my-4 text-center text-gray-500">or</div>
+        <div className="my-4 text-center text-gray-500 dark:text-gray-400">or</div>
         <div id="google-signin-btn" className="flex justify-center" />
         
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
           Don't have an account?{" "}
-          <a href="/register" className="text-blue-600 hover:text-blue-800">
+          <a href="/register" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
             Create Account
           </a>
         </p>
