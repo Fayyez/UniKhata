@@ -10,5 +10,65 @@
         "name": "Blue Jeans",
         "price": "75.00",
         "stock": 5
+    },
+    {
+        "id": 503,
+        "name": "Black T-Shirt",
+        "price": "35.00",
+        "stock": 15
+    },
+    {
+        "id": 504,
+        "name": "White Sneakers",
+        "price": "89.99",
+        "stock": 8
+    },
+    {
+        "id": 505,
+        "name": "Gray Hoodie",
+        "price": "65.00",
+        "stock": 12
+    },
+    {
+        "id": 506,
+        "name": "Denim Jacket",
+        "price": "120.00",
+        "stock": 4
+    },
+    {
+        "id": 507,
+        "name": "Khaki Pants",
+        "price": "55.00",
+        "stock": 20
+    },
+    {
+        "id": 508,
+        "name": "Running Shorts",
+        "price": "30.00",
+        "stock": 25
+    },
+    {
+        "id": 509,
+        "name": "Winter Coat",
+        "price": "199.99",
+        "stock": 6
+    },
+    {
+        "id": 510,
+        "name": "Wool Socks",
+        "price": "12.99",
+        "stock": 30
+    },
+    {
+        "id": 511,
+        "name": "Baseball Cap",
+        "price": "25.00",
+        "stock": 18
+    },
+    {
+        "id": 512,
+        "name": "Leather Belt",
+        "price": "45.00",
+        "stock": 14
     }
 ]
