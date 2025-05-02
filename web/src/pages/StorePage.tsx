@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import OrdersTab from '../components/OrdersTab';
 import ProductsTab from '../components/ProductsTab';
+import OrdersAnalyticsTab from '../components/OrdersAnalyticsTab';
 
 const StorePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -225,6 +226,8 @@ const StorePage: React.FC = () => {
               <OrdersTab />
             ) : activeTab === 'products' ? (
               <ProductsTab />
+            ) : activeTab === 'analytics' ? (
+              <OrdersAnalyticsTab />
             ) : (
               <div className="text-center text-gray-500 dark:text-gray-400">
                 {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} content will be displayed here

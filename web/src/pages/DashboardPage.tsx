@@ -61,37 +61,12 @@ const DashboardPage: React.FC = () => {
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <h1 className="text-2xl font-medium text-gray-900 dark:text-white mb-6">Stores</h1>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {/* Add Store Card */}
-            <div
-              onClick={() => navigate('/create-store')}
-              className="relative rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-[#1a73e8] dark:hover:border-[#1a73e8]"
-            >
-              <div className="h-28 bg-white dark:bg-gray-800 relative p-6 flex flex-col items-center justify-center">
-                <div className="w-12 h-12 rounded-full bg-[#1a73e8]/10 dark:bg-[#1a73e8]/20 flex items-center justify-center mb-2">
-                  <svg
-                    className="w-6 h-6 text-[#1a73e8]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                </div>
-                <h2 className="text-lg font-medium text-gray-900 dark:text-white">Add New Store</h2>
-              </div>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-stretch">
             {/* Store Cards */}
             {stores.map((store) => (
               <div
                 key={store.id}
-                className="relative rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200"
+                className="relative rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col h-full"
               >
                 <Link to={`/store/${store.id}`}>
                   <div className={`h-28 ${store.color || defaultColors[0]} relative p-6`}>
@@ -99,7 +74,7 @@ const DashboardPage: React.FC = () => {
                     <p className="text-white/90 text-sm mt-1">{store.owner}</p>
                   </div>
                 </Link>
-                <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 mt-auto">
                   <div className="flex justify-end space-x-2">
                     <button 
                       onClick={() => console.log('Edit store:', store.id)}
@@ -121,6 +96,30 @@ const DashboardPage: React.FC = () => {
                 </div>
               </div>
             ))}
+            {/* Add Store Card */}
+            <div
+              onClick={() => navigate('/create-store')}
+              className="relative rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer flex flex-col h-full"
+            >
+              <div className="h-28 bg-white dark:bg-gray-800 relative p-6 flex flex-col items-center justify-center flex-1">
+                <div className="w-12 h-12 rounded-full bg-[#1a73e8]/10 dark:bg-[#1a73e8]/20 flex items-center justify-center mb-2">
+                  <svg
+                    className="w-6 h-6 text-[#1a73e8]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-medium text-gray-900 dark:text-white">Add New Store</h2>
+              </div>
+            </div>
           </div>
         </div>
       </div>
