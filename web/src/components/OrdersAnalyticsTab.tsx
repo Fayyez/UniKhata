@@ -5,7 +5,9 @@ const stats = [
     label: 'Total Sales',
     value: '$4,876.98',
     icon: (
-      <svg className="w-6 h-6 text-[#1a73e8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h10M7 11h10M7 15h6" /></svg>
+      <svg className="w-6 h-6 text-[#1a73e8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
     ),
     bg: 'bg-[#1a73e8]/10',
   },
@@ -13,7 +15,9 @@ const stats = [
     label: 'Total Profit',
     value: '$762.10',
     icon: (
-      <svg className="w-6 h-6 text-[#1a73e8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2M16 11V7a4 4 0 00-8 0v4M12 17v.01" /></svg>
+      <svg className="w-6 h-6 text-[#1a73e8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+      </svg>
     ),
     bg: 'bg-[#1a73e8]/20',
   },
@@ -21,7 +25,9 @@ const stats = [
     label: 'Total Orders',
     value: '1056',
     icon: (
-      <svg className="w-6 h-6 text-[#1a73e8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h18M3 17h18" /></svg>
+      <svg className="w-6 h-6 text-[#1a73e8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
     ),
     bg: 'bg-gray-100 dark:bg-gray-700',
   },
@@ -62,12 +68,12 @@ const OrdersAnalyticsTab: React.FC = () => {
               <div className="bg-white rounded p-2 shadow-sm flex items-center justify-center">
                 {stat.icon}
               </div>
-              <span className="font-medium text-white">{stat.label}</span>
+              <span className="font-medium text-gray-900 dark:text-white">{stat.label}</span>
             </div>
             <div className="flex items-end justify-between mt-2">
-              <span className="text-2xl font-bold text-white">{stat.value}</span>
+              <span className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</span>
               {/* Trend icon placeholder */}
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 17l6-6 4 4 6-6" /></svg>
+              <svg className="w-6 h-6 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 17l6-6 4 4 6-6" /></svg>
             </div>
           </div>
         ))}
@@ -84,25 +90,16 @@ const OrdersAnalyticsTab: React.FC = () => {
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Sold</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total sales</th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stock status</th>
-                <th className="px-4 py-2"></th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {topProducts.map((product) => (
                 <tr key={product.name}>
-                  <td className="px-4 py-2 whitespace-nowrap flex items-center gap-3 text-sm">
-                    <img src={product.img} alt={product.name} className="w-10 h-10 rounded object-cover border" />
-                    <span className="text-gray-900 dark:text-white font-medium">{product.name}</span>
-                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium">{product.name}</td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">{product.sold}</td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">{product.sales}</td>
                   <td className="px-4 py-2 whitespace-nowrap text-sm">
                     <span className={product.status === 'In Stock' ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold'}>{product.status}</span>
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm">
-                    <button className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"/><circle cx="19.5" cy="12" r="1.5"/><circle cx="4.5" cy="12" r="1.5"/></svg>
-                    </button>
                   </td>
                 </tr>
               ))}

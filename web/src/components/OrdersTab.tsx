@@ -115,8 +115,8 @@ const OrdersTab: React.FC = () => {
             </svg>
           </button>
           {isRangeDropdownOpen && (
-            <div
-              className="fixed z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg p-4 flex flex-col gap-4"
+            <div 
+              className="fixed z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg p-4 flex flex-col gap-4"
               style={{ top: dropdownPos.top, left: dropdownPos.left, minWidth: dropdownPos.width }}
             >
               <div className="flex flex-col gap-2 mb-2">

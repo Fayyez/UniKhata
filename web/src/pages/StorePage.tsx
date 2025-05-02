@@ -9,7 +9,7 @@ import OrdersAnalyticsTab from '../components/OrdersAnalyticsTab';
 const StorePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('orders');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [ordersRange, setOrdersRange] = useState('Today');
@@ -133,106 +133,110 @@ const StorePage: React.FC = () => {
         userName="John Doe"
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
       />
-      <Sidebar isOpen={isSidebarOpen} />
-      
-      <div className={`pt-16 transition-all duration-200 ${isSidebarOpen ? 'pl-64' : 'pl-0'}`}>
-        {/* Store Navigation Bar */}
-        <div className="bg-white dark:bg-gray-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center">
-                <h1 className="text-xl font-medium text-gray-900 dark:text-white">Main Store</h1>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-8">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-1 py-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
-                    activeTab === tab.id
-                      ? 'border-[#1a73e8] text-[#1a73e8] dark:text-[#1a73e8]'
-                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
-                >
-                  {tab.icon}
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </nav>
-
-            {/* Mobile Navigation */}
-            <div className="md:hidden">
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="flex items-center justify-between w-full py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              >
-                <span className="flex items-center space-x-2">
-                  {tabs.find(tab => tab.id === activeTab)?.icon}
-                  <span>{tabs.find(tab => tab.id === activeTab)?.label}</span>
-                </span>
-                <svg
-                  className={`h-5 w-5 transform transition-transform duration-200 ${
-                    isMobileMenuOpen ? 'rotate-180' : ''
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {/* Mobile Menu Dropdown */}
-              {isMobileMenuOpen && (
-                <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10">
-                  <div className="py-1">
-                    {tabs.map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => {
-                          setActiveTab(tab.id);
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className={`flex items-center space-x-2 w-full px-4 py-2 text-sm font-medium ${
-                          activeTab === tab.id
-                            ? 'text-[#1a73e8] dark:text-[#1a73e8] bg-[#1a73e8]/5 dark:bg-[#1a73e8]/10'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                        }`}
-                      >
-                        {tab.icon}
-                        <span>{tab.label}</span>
-                      </button>
-                    ))}
+      <div className="flex">
+        <Sidebar isOpen={isSidebarOpen} />
+        
+        <div className="flex-1 pt-16 transition-all duration-200">
+          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            {/* Store Navigation Bar */}
+            <div className="bg-white dark:bg-gray-800 shadow-sm">
+              <div className="px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-16">
+                  <div className="flex items-center">
+                    <h1 className="text-xl font-medium text-gray-900 dark:text-white">Main Store</h1>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            {/* Content will be rendered here based on activeTab */}
-            {activeTab === 'orders' ? (
-              <OrdersTab />
-            ) : activeTab === 'products' ? (
-              <ProductsTab />
-            ) : activeTab === 'analytics' ? (
-              <OrdersAnalyticsTab />
-            ) : (
-              <div className="text-center text-gray-500 dark:text-gray-400">
-                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} content will be displayed here
               </div>
-            )}
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Desktop Navigation */}
+                <nav className="hidden md:flex space-x-8">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center space-x-2 px-1 py-4 text-sm font-medium border-b-2 transition-colors duration-200 ${
+                        activeTab === tab.id
+                          ? 'border-[#1a73e8] text-[#1a73e8] dark:text-[#1a73e8]'
+                          : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                      }`}
+                    >
+                      {tab.icon}
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                </nav>
+
+                {/* Mobile Navigation */}
+                <div className="md:hidden">
+                  <button
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="flex items-center justify-between w-full py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                  >
+                    <span className="flex items-center space-x-2">
+                      {tabs.find(tab => tab.id === activeTab)?.icon}
+                      <span>{tabs.find(tab => tab.id === activeTab)?.label}</span>
+                    </span>
+                    <svg
+                      className={`h-5 w-5 transform transition-transform duration-200 ${
+                        isMobileMenuOpen ? 'rotate-180' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Mobile Menu Dropdown */}
+                  {isMobileMenuOpen && (
+                    <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10">
+                      <div className="py-1">
+                        {tabs.map((tab) => (
+                          <button
+                            key={tab.id}
+                            onClick={() => {
+                              setActiveTab(tab.id);
+                              setIsMobileMenuOpen(false);
+                            }}
+                            className={`flex items-center space-x-2 w-full px-4 py-2 text-sm font-medium ${
+                              activeTab === tab.id
+                                ? 'text-[#1a73e8] dark:text-[#1a73e8] bg-[#1a73e8]/5 dark:bg-[#1a73e8]/10'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            }`}
+                          >
+                            {tab.icon}
+                            <span>{tab.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+                {/* Content will be rendered here based on activeTab */}
+                {activeTab === 'orders' ? (
+                  <OrdersTab />
+                ) : activeTab === 'products' ? (
+                  <ProductsTab />
+                ) : activeTab === 'analytics' ? (
+                  <OrdersAnalyticsTab />
+                ) : (
+                  <div className="text-center text-gray-500 dark:text-gray-400">
+                    {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} content will be displayed here
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
