@@ -16,7 +16,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      //navigate("/dashboard");
     }
 
     window.google.accounts.id.initialize({

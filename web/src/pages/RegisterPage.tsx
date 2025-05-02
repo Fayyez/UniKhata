@@ -18,7 +18,7 @@ const RegisterPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard"); // Redirect to dashboard if already logged in
+      //navigate("/dashboard"); // Redirect to dashboard if already logged in
     }
 
     window.google.accounts.id.initialize({
