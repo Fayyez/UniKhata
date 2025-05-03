@@ -27,5 +27,7 @@ export const login = async (req, res) => {
     export const googleOAuthCallback = async (req, res) => {
     const user = req.user;
     const token = generateToken(user);
-    res.redirect(`http://localhost:3000/dashboard?token=${token}`); // or send as JSON for SPA
+    console.log("user created successfully...");
+    // Store tokens in localStorage through URL parameters
+    res.redirect(`http://localhost:5173/landing?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
 };

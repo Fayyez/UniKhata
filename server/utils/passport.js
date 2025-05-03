@@ -1,8 +1,12 @@
 import passport from 'passport';
 import GoogleStrategy from 'passport-google-oauth20';
 import LocalStrategy from 'passport-local';
+import JWTStrategy from 'passport-jwt';
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 passport.serializeUser((user, done) => {
     done(null, user.id);
@@ -65,3 +69,21 @@ passport.use(new LocalStrategy({
         }
     })
 );
+
+// JWT Strategy
+const options = {
+    jwtFromRequest: JWTStrategy.ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: process.env.JWT_SECRET
+};
+
+passport.use(new JWTStrategy.Strategy(options, async (jwtPayload, done) => {
+    try {
+        const user = await User.findById(jwtPayload.id);
+        if (user) {
+            return done(null, user);
+        }
+        return done(null, false);
+    } catch (error) {
+        return done(error, false);
+    }
+}));

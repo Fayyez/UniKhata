@@ -1,24 +1,27 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import passport from 'passport';
 import session from 'express-session';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import dotenv from 'dotenv';
+
 
 // importing all the routes
 
-import authRoutes from "./routes/authRoutes.js"
+import authRoutes from './routes/authRoutes.js';
 
-dotenv.config();
+
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// TODO: connect database to app
-// mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-//     .then(() => console.log('Connected to MongoDB'))
-//     .catch(err => console.log(err));
+// connectiing to the database
+mongoose.connect(process.env.MONGO_URI, { useUnifiedTopology: true })
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.log(err));
 
 import './utils/passport.js'
 
