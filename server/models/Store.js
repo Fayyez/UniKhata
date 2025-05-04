@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const storeSchema = new mongoose.Schema({
+    id: {type: String, required: true, unique: true},
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     name: { type: String, required: true },
     ecommerceIntegrations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'EcommerceIntegration' }],

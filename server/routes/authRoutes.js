@@ -13,6 +13,10 @@ router.get('/google', passport.authenticate('google', {
 
 // Google OAuth callback
 router.get('/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
+    //{
+    // "accesstoken": abvc
+    // "refreshtoken": abcs
+    //}
     const tokens = generateTokens(req.user);
     // Redirect to frontend with tokens as URL parameters
     res.redirect(`http://localhost:5173/landing?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`);
@@ -68,6 +72,7 @@ router.post('/refresh', async (req, res) => {
 
 // Add this new route before the export
 router.get('/user-info', passport.authenticate('jwt', { session: false }), (req, res) => {
+    // TODO: fetch user data from database instead of directly sending
     res.json({
         id: req.user._id,
         email: req.user.email,

@@ -11,6 +11,7 @@ import cors from 'cors';
 // importing all the routes
 
 import authRoutes from './routes/authRoutes.js';
+//import productRouter from "./routes/productRoutes.js"
 
 
 
@@ -36,7 +37,8 @@ app.use(passport.session());
 
 // Routes
 app.use('/api/auth', authRoutes);// for authentication service
-//app.use('/api/user', userRoutes);
+
+// TODO: user
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`>> Server running on port ${PORT}`));
