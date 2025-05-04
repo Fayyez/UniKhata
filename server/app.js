@@ -7,13 +7,9 @@ import session from 'express-session';
 import mongoose from 'mongoose';
 import cors from 'cors';
 
-
 // importing all the routes
-
 import authRoutes from './routes/authRoutes.js';
-//import productRouter from "./routes/productRoutes.js"
-
-
+import storeRoutes from './routes/storeRoutes.js';
 
 const app = express();
 app.use(cors());
@@ -37,6 +33,7 @@ app.use(passport.session());
 
 // Routes 
 app.use('/api/auth', authRoutes);// for authentication service
+app.use('/api/stores', storeRoutes);
 
 // TODO: user
 
