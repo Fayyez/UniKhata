@@ -1,13 +1,13 @@
-import { Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
-import { ThemeProvider } from './context/ThemeContext'
-import ThemeToggle from './components/ThemeToggle'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
-import DashboardPage from './pages/DashboardPage'
-import ProfilePage from './pages/ProfilePage'
-import CreateStorePage from './pages/CreateStorePage'
-import StorePage from './pages/StorePage'
+import { Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import ThemeToggle from "./components/ThemeToggle";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import DashboardPage from "./pages/DashboardPage";
+import ProfilePage from "./pages/ProfilePage";
+import CreateStorePage from "./pages/CreateStorePage";
+import StorePage from "./pages/StorePage";
 
 function App() {
   return (
@@ -27,7 +27,7 @@ function App() {
         </div>
       </AuthProvider>
     </ThemeProvider>
-  )
+  );
 }
 
-export default App
+export default App;
