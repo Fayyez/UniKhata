@@ -5,6 +5,7 @@ import JWTStrategy from 'passport-jwt';
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import dotenv from 'dotenv';
+import e from 'express';
 
 dotenv.config();
 
@@ -31,7 +32,7 @@ passport.use(new GoogleStrategy({
             if (!user) {// if user not already created
                 user = new User({
                     googleId: profile.id,
-                    email: profile.emails[0].value,
+                    email: profile.emails[0].value.toLowerCase(),
                     name: profile.displayName,
                     avatar: profile.photos[0].value,
                 });
@@ -54,6 +55,7 @@ passport.use(new LocalStrategy({
     async (email, password, done) => {
         try {
             // find user in the database
+            email = email.toLowerCase();
             const user = await User.findOne({ email });
             // if user not found
             if (!user) {
