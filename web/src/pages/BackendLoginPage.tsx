@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const LoginPage = () => {
+const BackendLoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -24,8 +24,9 @@ const LoginPage = () => {
             
             // Set default authorization header
             axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            // fix the navigation
+            navigate(`/landing?accessToken=${accessToken}&refreshToken=${refreshToken}`);
 
-            navigate('/dashboard');
         } catch (err) {
             setError('Invalid credentials');
         }
@@ -53,7 +54,7 @@ const LoginPage = () => {
             // Set default authorization header
             axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
             
-            navigate('/dashboard');
+            //navigate('/dashboard');
         } catch (err) {
             setError('Registration failed');
         }
@@ -126,4 +127,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default BackendLoginPage;
