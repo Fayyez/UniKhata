@@ -24,8 +24,9 @@ const LoginPage = () => {
             
             // Set default authorization header
             axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            // fix the navigation
+            navigate(`/landing?accessToken=${accessToken}&refreshToken=${refreshToken}`);
 
-            navigate('/dashboard');
         } catch (err) {
             setError('Invalid credentials');
         }
@@ -53,7 +54,7 @@ const LoginPage = () => {
             // Set default authorization header
             axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
             
-            navigate('/dashboard');
+            //navigate('/dashboard');
         } catch (err) {
             setError('Registration failed');
         }

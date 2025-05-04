@@ -20,7 +20,7 @@ app.use(cors());
 app.use(express.json());
 
 // connectiing to the database
-mongoose.connect(process.env.MONGO_URI, { useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.log(err));
 
@@ -35,7 +35,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
+// Routes 
 app.use('/api/auth', authRoutes);// for authentication service
 
 // TODO: user
