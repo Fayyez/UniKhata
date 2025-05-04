@@ -1,0 +1,21 @@
+{
+  "name": "courier-service",
+  "version": "1.0.0",
+  "description": "Dummy courier service for testing and demonstration",
+  "main": "courier.js",
+  "scripts": {
+    "start": "node courier.js",
+    "dev": "nodemon courier.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
