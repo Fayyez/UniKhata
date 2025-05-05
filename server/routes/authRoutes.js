@@ -23,7 +23,7 @@ router.get(
     // "accesstoken": abvc
     // "refreshtoken": abcs
     //}
-    const tokens = generateTokens(req.user);
+    const {accessToken, refreshToken} = generateTokens(req.user);
     // Redirect to frontend with tokens as URL parameters
     res.redirect(
       `http://localhost:5173/dashboard?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`
@@ -37,6 +37,7 @@ router.post(
   passport.authenticate("local", { session: false }),
   (req, res) => {
     const tokens = generateTokens(req.user);
+    //res.redirect(`http://localhost:5173/landing?accessToken=${accessToken}&refreshToken=${refreshToken}`);
     res.json(tokens);
   }
 );
@@ -90,10 +91,10 @@ router.get(
   (req, res) => {
     // TODO: fetch user data from database instead of directly sending
     res.json({
-      id: req.user._id,
-      email: req.user.email,
-      name: req.user.name,
-      picture: req.user.picture,
+        id: req.user._id,
+        email: req.user.email,
+        name: req.user.name,
+        // picture: req.user.picture
     });
   }
 );

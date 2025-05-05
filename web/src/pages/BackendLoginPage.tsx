@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-
-const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+const BackendLoginPage = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,11 +15,29 @@ const LoginPage = () => {
         { email, password }
       );
 
+<<<<<<< HEAD:web/src/pages/LoginPage.tsx
       const { accessToken, refreshToken } = response.data;
 
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
       axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+=======
+            const { accessToken, refreshToken } = response.data;
+            
+            // Store tokens
+            localStorage.setItem('accessToken', accessToken);
+            localStorage.setItem('refreshToken', refreshToken);
+            
+            // Set default authorization header
+            axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            // fix the navigation
+            navigate(`/landing?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+
+        } catch (err) {
+            setError('Invalid credentials');
+        }
+    };
+>>>>>>> 1ef1be3a3d9a8e0aa93b7706b4f5c55ef31a8310:web/src/pages/BackendLoginPage.tsx
 
       navigate("/dashboard");
     } catch (err) {
@@ -32,12 +49,29 @@ const LoginPage = () => {
     window.location.href = "http://localhost:4000/api/auth/google";
   };
 
+<<<<<<< HEAD:web/src/pages/LoginPage.tsx
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">
           Login
         </h2>
+=======
+            const { accessToken, refreshToken } = response.data;
+            
+            // Store tokens
+            localStorage.setItem('accessToken', accessToken);
+            localStorage.setItem('refreshToken', refreshToken);
+            
+            // Set default authorization header
+            axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            
+            //navigate('/dashboard');
+        } catch (err) {
+            setError('Registration failed');
+        }
+    };
+>>>>>>> 1ef1be3a3d9a8e0aa93b7706b4f5c55ef31a8310:web/src/pages/BackendLoginPage.tsx
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {error && <div className="text-red-500 text-center">{error}</div>}
@@ -109,4 +143,8 @@ const LoginPage = () => {
   );
 };
 
+<<<<<<< HEAD:web/src/pages/LoginPage.tsx
 export default LoginPage;
+=======
+export default BackendLoginPage;
+>>>>>>> 1ef1be3a3d9a8e0aa93b7706b4f5c55ef31a8310:web/src/pages/BackendLoginPage.tsx
