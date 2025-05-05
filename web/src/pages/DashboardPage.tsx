@@ -3,6 +3,14 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import UnauthorizedPage from "./UnauthorizedPage";
+
+interface UserInfo {
+  id: string;
+  email: string;
+  name: string;
+  picture?: string;
+}
 
 interface Store {
   id: string;
@@ -34,6 +42,13 @@ const DashboardPage: React.FC = () => {
     },
   ]);
 
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const defaultColors = [
     "bg-[#1967d2]", // Blue
     "bg-[#1e8e3e]", // Green
@@ -42,52 +57,115 @@ const DashboardPage: React.FC = () => {
     "bg-[#9334e6]", // Purple
   ];
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const userName = "John Doe";
-  const navigate = useNavigate();
-  const location = useLocation();
-
   useEffect(() => {
-    // Check for tokens in URL parameters (for Google OAuth)
     const params = new URLSearchParams(location.search);
     const accessToken = params.get('accessToken');
     const refreshToken = params.get('refreshToken');
 
     if (accessToken && refreshToken) {
-      // Store tokens from URL parameters
+      // Store tokens in localStorage
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
       axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
       
       // Remove tokens from URL
       window.history.replaceState({}, document.title, window.location.pathname);
-    } else {
-      // Check for tokens in localStorage
-      const storedAccessToken = localStorage.getItem('accessToken');
-      if (!storedAccessToken) {
-        navigate('/login');
-      }
     }
+
+    // Check for tokens in localStorage
+    const storedAccessToken = localStorage.getItem('accessToken');
+    if (!storedAccessToken) {
+      setIsAuthorized(false);
+      return;
+    }
+
+    // Set default authorization header
+    axios.defaults.headers.common['Authorization'] = `Bearer ${storedAccessToken}`;
+
+    // Fetch user information
+    const fetchUserInfo = async () => {
+      try {
+        const response = await axios.get('http://localhost:4000/api/auth/user-info');
+        setUserInfo(response.data);
+        setIsAuthorized(true);
+      } catch (err) {
+        setError('Failed to fetch user information');
+        console.error(err);
+        setIsAuthorized(false);
+      }
+    };
+
+    fetchUserInfo();
   }, [navigate, location]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    delete axios.defaults.headers.common['Authorization'];
+    navigate('/login');
+  };
 
   const handleDeleteStore = (id: string) => {
     setStores((prev) => prev.filter((store) => store.id !== id));
   };
 
+  if (isAuthorized === false) {
+    return <UnauthorizedPage />;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-8 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
+          <p className="text-gray-700">{error}</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Return to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userInfo) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-gray-900">
       <Navbar
-        userName={userName}
+        userName={userInfo.name}
+        userEmail={userInfo.email}
+        userImage={userInfo.picture}
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        onLogout={handleLogout}
       />
       <div className="flex">
         <Sidebar isOpen={isSidebarOpen} />
 
         <div className="flex-1 pt-16 transition-all duration-200">
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <h1 className="text-2xl font-medium text-gray-900 dark:text-white mb-6">
-              Stores
-            </h1>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-medium text-gray-900 dark:text-white">
+                Stores
+              </h1>
+              <div className="flex items-center space-x-4">
+                {userInfo.picture && (
+                  <img
+                    src={userInfo.picture}
+                    alt="Profile"
+                    className="h-10 w-10 rounded-full"
+                  />
+                )}
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-stretch">
               {/* Store Cards */}
