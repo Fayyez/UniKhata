@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
-import ProductCounter
- from './ProductCounter';
+
 const storeSchema = new mongoose.Schema({
     id: {type: String, required: true, unique: true},
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

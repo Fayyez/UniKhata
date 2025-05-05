@@ -1,15 +1,14 @@
 import express from "express";
 import { authMiddleware } from "../middleware/auth";
+import { Product } from "../models/Product";
 
 //TODO: define the product model related services here
 // all business logic should be in ../controllers/productController.js
 
 const router = express.Router();
-// all of the following would be protected routes from now on
-router.get('/all', authMiddleware, (req, res) => {
-    //TODO: define the product returning service
-    // basically get all products for all the stores that the user storeis integrated with
-    //
-})
+
+router.get('/', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    
+});
 
 export default router;
