@@ -1,21 +1,30 @@
-import './App.css'
-import LoginPage from './pages/BackendLoginPage'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import LandingPage from './pages/LandingPage'
-import BackendLoginPage from './pages/BackendLoginPage'
+import { Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "./context/ThemeContext";
+import ThemeToggle from "./components/ThemeToggle";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import DashboardPage from "./pages/DashboardPage";
+import ProfilePage from "./pages/ProfilePage";
+import CreateStorePage from "./pages/CreateStorePage";
+import StorePage from "./pages/StorePage";
 
 function App() {
-
   return (
-    <BrowserRouter>
-    <h3>Hello and welcome nav bar</h3>
-    <Routes>
-      <Route path="/" element={<BackendLoginPage/>}/>
-      <Route path="/login" element={<BackendLoginPage/>}/>
-      <Route path="/landing" element={<LandingPage/>}/>
-    </Routes>
-    </BrowserRouter>
-  )
+    <ThemeProvider>
+      <div className="min-h-screen bg-white dark:bg-gray-900">
+        <ThemeToggle />
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/create-store" element={<CreateStorePage />} />
+          <Route path="/store/:id" element={<StorePage />} />
+        </Routes>
+      </div>
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;
