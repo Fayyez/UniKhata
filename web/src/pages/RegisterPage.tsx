@@ -1,80 +1,84 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-const BackendLoginPage = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post(
-        "http://localhost:4000/api/auth/login",
-        { email, password }
-      );
+declare global {
+  interface Window {
+    google: any;
+  }
+}
 
-<<<<<<< HEAD:web/src/pages/LoginPage.tsx
-      const { accessToken, refreshToken } = response.data;
+const RegisterPage = () => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get("accessToken");
+    const refreshToken = urlParams.get("refreshToken");
+
+    if (accessToken && refreshToken) {
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
       axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-=======
-            const { accessToken, refreshToken } = response.data;
-            
-            // Store tokens
-            localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('refreshToken', refreshToken);
-            
-            // Set default authorization header
-            axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-            // fix the navigation
-            navigate(`/landing?accessToken=${accessToken}&refreshToken=${refreshToken}`);
-
-        } catch (err) {
-            setError('Invalid credentials');
-        }
-    };
->>>>>>> 1ef1be3a3d9a8e0aa93b7706b4f5c55ef31a8310:web/src/pages/BackendLoginPage.tsx
-
       navigate("/dashboard");
-    } catch (err) {
-      setError("Invalid credentials");
+    }
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "http://localhost:4000/api/auth/register",
+        {
+          email,
+          password,
+          name,
+        }
+      );
+
+      const { accessToken, refreshToken } = response.data;
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+      navigate("/dashboard");
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Registration failed");
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleSignup = () => {
     window.location.href = "http://localhost:4000/api/auth/google";
   };
 
-<<<<<<< HEAD:web/src/pages/LoginPage.tsx
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">
-          Login
+          Create Account
         </h2>
-=======
-            const { accessToken, refreshToken } = response.data;
-            
-            // Store tokens
-            localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('refreshToken', refreshToken);
-            
-            // Set default authorization header
-            axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-            
-            //navigate('/dashboard');
-        } catch (err) {
-            setError('Registration failed');
-        }
-    };
->>>>>>> 1ef1be3a3d9a8e0aa93b7706b4f5c55ef31a8310:web/src/pages/BackendLoginPage.tsx
+
+        {error && <div className="text-red-500 text-center mb-2">{error}</div>}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {error && <div className="text-red-500 text-center">{error}</div>}
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+            required
+          />
           <input
             type="email"
             placeholder="Email"
@@ -91,11 +95,19 @@ const BackendLoginPage = () => {
             className="border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             required
           />
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+            required
+          />
           <button
             type="submit"
             className="bg-[#1a73e8] text-white rounded-lg py-2 hover:bg-[#1967d2] transition"
           >
-            Login
+            Register
           </button>
         </form>
 
@@ -103,9 +115,9 @@ const BackendLoginPage = () => {
           or
         </div>
 
-        {/* Consistent Google Sign-In Button */}
+        {/* Consistent Google Sign-Up Button */}
         <button
-          onClick={handleGoogleLogin}
+          onClick={handleGoogleSignup}
           className="w-full flex items-center justify-center border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
         >
           <svg className="h-5 w-5 mr-3" viewBox="0 0 24 24">
@@ -126,16 +138,16 @@ const BackendLoginPage = () => {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Sign in with Google
+          Sign up with Google
         </button>
 
         <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-          Don't have an account?{" "}
+          Already have an account?{" "}
           <Link
-            to="/register"
+            to="/login"
             className="text-[#1a73e8] hover:text-[#1967d2] dark:text-[#1a73e8] dark:hover:text-[#1967d2]"
           >
-            Create Account
+            Login
           </Link>
         </p>
       </div>
@@ -143,8 +155,4 @@ const BackendLoginPage = () => {
   );
 };
 
-<<<<<<< HEAD:web/src/pages/LoginPage.tsx
-export default LoginPage;
-=======
-export default BackendLoginPage;
->>>>>>> 1ef1be3a3d9a8e0aa93b7706b4f5c55ef31a8310:web/src/pages/BackendLoginPage.tsx
+export default RegisterPage;

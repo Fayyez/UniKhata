@@ -21,5 +21,3 @@ class Product {
         this.updatedAt = product.updatedAt;
     }
 }
-
-export default Product;
