@@ -4,7 +4,7 @@ import DummyCourier from "../integration/Couriers/DummyCourier.js";
 
 /**
  * Creates a list of courier class objects based on the provided list of CourierIntegration objects.
- * 
+ *
  * @param {Array} list_of_couriers_from_database - Array of CourierIntegration objects from the database.
  * Each object should have a `title` field that matches a courier title defined in constants.js.
  * 
