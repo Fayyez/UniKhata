@@ -26,7 +26,7 @@ router.get(
     const {accessToken, refreshToken} = generateTokens(req.user);
     // Redirect to frontend with tokens as URL parameters
     res.redirect(
-      `http://localhost:5173/dashboard?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`
+      `http://localhost:5173/dashboard?accessToken=${accessToken}&refreshToken=${refreshToken}`
     );
   }
 );
