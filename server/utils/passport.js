@@ -2,10 +2,8 @@ import passport from 'passport';
 import GoogleStrategy from 'passport-google-oauth20';
 import LocalStrategy from 'passport-local';
 import JWTStrategy from 'passport-jwt';
-import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import dotenv from 'dotenv';
-import e from 'express';
 
 dotenv.config();
 

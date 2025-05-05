@@ -1,9 +1,16 @@
+// TODO: remove all the unnecesssary methods this is an AI generated file
+
 class ParentCourier {
-  constructor(baseUrl) {
+  // atributes
+  baseUrl = null; // Base URL for the courier service API
+  token = null; // Authentication token for the courier service API
+  associatedEmail = null; // Email associated with the courier service account
+  title= null; // Title of the courier service defined in "../../utils/constants.js"
+
+  constructor() {
     if (this.constructor === ParentCourier) {
       throw new Error("Abstract class ParentCourier cannot be instantiated directly");
     }
-    this.baseUrl = baseUrl;
   }
 
   // Order creation and management
@@ -61,3 +68,5 @@ class ParentCourier {
     throw new Error("Method 'estimateDeliveryTime' must be implemented");
   }
 }
+
+export default ParentCourier;

@@ -1,10 +1,17 @@
+// TODO: remove all the unnecessary methods this is an AI generated file
+
 class ParentEStore {
-  constructor(baseUrl, identifier) {
+    // atributes
+    baseUrl = null; // Base URL for the courier service API
+    token = null; // Authentication token for the courier service API
+    associatedEmail = null; // Email associated with the courier service account
+    title= null; // Title of the courier service defined in "../../utils/constants.js"
+
+
+  constructor() {
     if (this.constructor === ParentEStore) {
       throw new Error("Abstract class ParentEStore cannot be instantiated directly");
     }
-    this.baseUrl = baseUrl;
-    this.identifier = identifier;
   }
 
   // Product Management
@@ -59,32 +66,6 @@ class ParentEStore {
     throw new Error("Method 'getPricing' must be implemented");
   }
 
-  // Store Settings & Configuration
-  async getStoreSettings() {
-    throw new Error("Method 'getStoreSettings' must be implemented");
-  }
-
-  async updateStoreSettings(settings) {
-    throw new Error("Method 'updateStoreSettings' must be implemented");
-  }
-
-  // Authentication & Authorization
-  async authenticate() {
-    throw new Error("Method 'authenticate' must be implemented");
-  }
-
-  async validateCredentials() {
-    throw new Error("Method 'validateCredentials' must be implemented");
-  }
-
-  // Utility Methods
-  async syncProducts() {
-    throw new Error("Method 'syncProducts' must be implemented");
-  }
-
-  async handleWebhook(payload) {
-    throw new Error("Method 'handleWebhook' must be implemented");
-  }
 }
 
 export default ParentEStore;

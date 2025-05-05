@@ -1,6 +1,9 @@
 import express from "express";
 import { authMiddleware } from "../middleware/auth";
 
+//TODO: define the product model related services here
+// all business logic should be in ../controllers/productController.js
+
 const router = express.Router();
 // all of the following would be protected routes from now on
 router.get('/all', authMiddleware, (req, res) => {
