@@ -25,4 +25,4 @@ const productSchema = new mongoose.Schema({
 productSchema.index({ store: 1, name: 1 }, { unique: true });
 productSchema.index({ store: 1, localProductId: 1 }, { unique: true });
 
-module.exports = mongoose.model("Product", productSchema);
+export default mongoose.model('Product', productSchema);

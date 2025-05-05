@@ -9,4 +9,4 @@ const courierIntegrationSchema = new mongoose.Schema({
     token: String
 });
 
-module.exports = mongoose.model('CourierIntegration', courierIntegrationSchema);
+export default mongoose.model('CourierIntegration', courierIntegrationSchema);

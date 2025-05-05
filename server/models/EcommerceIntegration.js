@@ -9,4 +9,4 @@ const ecommerceIntegrationSchema = new mongoose.Schema({
     token: String,
 });
 
-module.exports = mongoose.model('EcommerceIntegration', ecommerceIntegrationSchema);
+export default mongoose.model('EcommerceIntegration', ecommerceIntegrationSchema);
