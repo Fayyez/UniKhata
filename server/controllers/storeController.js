@@ -1,13 +1,19 @@
-import express from 'express';
-import passport from 'passport';
+// TODO: Implement store controller methods to handle store operations
+
+/**
+ * Controller for managing store operations
+ * This file will contain methods for handling store CRUD functionalities
+ */
+
 import Store from '../models/Store.js';
 import { v4 as uuidv4 } from 'uuid';
 
-//TODO: fix and test tall the following services
-const router = express.Router();
-
-// Create a new store
-router.post('/', passport.authenticate('jwt', { session: false }), async (req, res) => {
+/**
+ * Create a new store
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+export const createStore = async (req, res) => {
     try {
         const { name } = req.body;
         const store = new Store({
@@ -20,10 +26,14 @@ router.post('/', passport.authenticate('jwt', { session: false }), async (req, r
     } catch (error) {
         res.status(500).json({ message: 'Error creating store', error: error.message });
     }
-});
+};
 
-// Get all stores for the logged-in user with optional filters
-router.get('/', passport.authenticate('jwt', { session: false }), async (req, res) => {
+/**
+ * Get all stores for the logged-in user with optional filters
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+export const getStores = async (req, res) => {
     try {
         const { name, sortBy, sortOrder } = req.query;
         let query = { owner: req.user._id, deleted: false };
@@ -45,10 +55,14 @@ router.get('/', passport.authenticate('jwt', { session: false }), async (req, re
     } catch (error) {
         res.status(500).json({ message: 'Error fetching stores', error: error.message });
     }
-});
+};
 
-// Get a single store by ID
-router.get('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
+/**
+ * Get a single store by ID
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+export const getStoreById = async (req, res) => {
     try {
         const store = await Store.findOne({ id: req.params.id, owner: req.user._id, deleted: false });
         if (!store) {
@@ -58,10 +72,14 @@ router.get('/:id', passport.authenticate('jwt', { session: false }), async (req,
     } catch (error) {
         res.status(500).json({ message: 'Error fetching store', error: error.message });
     }
-});
+};
 
-// Update a store
-router.put('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
+/**
+ * Update a store
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+export const updateStore = async (req, res) => {
     try {
         const { name } = req.body;
         const store = await Store.findOneAndUpdate(
@@ -76,10 +94,14 @@ router.put('/:id', passport.authenticate('jwt', { session: false }), async (req,
     } catch (error) {
         res.status(500).json({ message: 'Error updating store', error: error.message });
     }
-});
+};
 
-// Soft delete a store
-router.delete('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
+/**
+ * Soft delete a store
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+export const deleteStore = async (req, res) => {
     try {
         const store = await Store.findOneAndUpdate(
             { id: req.params.id, owner: req.user._id, deleted: false },
@@ -93,6 +115,4 @@ router.delete('/:id', passport.authenticate('jwt', { session: false }), async (r
     } catch (error) {
         res.status(500).json({ message: 'Error deleting store', error: error.message });
     }
-});
-
-export default router;
+};
