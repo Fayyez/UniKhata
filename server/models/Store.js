@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
 const storeSchema = new mongoose.Schema({
-    id: {type: String, required: true, unique: true},
+    sid: {type: String, required: true, unique: true}, // required to be filled, auto-incremented
+    name: { type: String, required: true }, // required to be filled
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    name: { type: String, required: true },
-    ecommerceIntegrations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'EcommerceIntegration' }],
+    eCommerceIntegrations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ECommerceIntegration' }],
     courierIntegrations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CourierIntegration' }],
     createdAt: { type: Date, default: Date.now },
     deleted: { type: Boolean, default: false },
