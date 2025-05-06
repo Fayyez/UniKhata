@@ -1,8 +1,5 @@
 import express from "express";
-// import { Product } from "../models/Product.js";
-
-//TODO: define the product model related services here
-// all business logic should be in ../controllers/productController.js
+import { getAllProducts, createProduct, updateProduct, deleteProduct, getProductById } from "../controllers/productController.js";
 
 const router = express.Router();
 
@@ -12,31 +9,18 @@ const router = express.Router();
 // -------------------------------------------------------------------------------------------------
 
 // PRODUCTS:
-// GET products/ {uid} : Returns all the products under a user (200). [?name, ?lowPrice, ?highPrice]
-// GET products/ {storeid} : Returns all the products under a specific store (200). [?name, ?lowPrice, ?highPrice]
-// GET products/ {} : Returns all the products existing in the database (200). [?name, ?lowPrice, ?highPrice]
-// GET products/:pid {} : Returns the product with id = pid (200).
-// POST products/ {product} : Returns the created product id (201) created via provided product details.
-// PUT products/:pid {product} : Updates the product with id = pid (200).
-// DELETE products/:pid {} : Soft deletes a product with id = pid (200).
+// ✅ GET products/ {uid} : Returns all the products under a user (200). [?name, ?lowPrice, ?highPrice]
+// ✅ GET products/ {storeid} : Returns all the products under a specific store (200). [?name, ?lowPrice, ?highPrice]
+// ✅ GET products/ {} : Returns all the products existing in the database (200). [?name, ?lowPrice, ?highPrice]
+// ✅ GET products/:pid {} : Returns the product with id = pid (200).
+// ✅ POST products/ {product} : Returns the created product id (201) created via provided product details.
+// ✅ PATCH products/:pid {product} : Updates the product with id = pid (200).
+// ✅ DELETE products/:pid {} : Soft deletes a product with id = pid (200).
 
-router.get('/', async (req, res) => {
-    // req.query => for query parameters
-    // req.params => for url parameters
-    // req.body => for body parameters
-    // const products = getProducts(query, params, body);
-    // send back products as json
-
-    res.status(200).json({ message: "Products fetched successfully"});
-});
-
-router.post('/', async (req, res) => {
-    // create a new product
-    
-    const product = req.body; // assuming the product details are sent in the request body
-    const newProduct = await Product.create(product); // assuming you have a Product model to handle database operations
-    res.status(201).json({ message: "Product created successfully", productId: newProduct.id }); // send back the created product id
-});
-
+router.get('/', getAllProducts); // get all products under a user or store or all products in the database
+router.get('/:pid', getProductById); // get a product with id = pid
+router.post('/', createProduct); // create a new product
+router.patch('/:pid', updateProduct); // update a product with id = pid
+router.delete('/:pid', deleteProduct); // soft delete a product with id = pid
 
 export default router;
