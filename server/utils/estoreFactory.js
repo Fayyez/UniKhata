@@ -23,19 +23,19 @@ import DummyStore from "../integration/E-stores/DummyStore.js";
 function createEStoreObjects(list_of_ecommerceIntegration_objects) {
     const eStoreObjects = [];
     try {
-        list_of_ecommerceIntegration_objects.forEach((ecommerceIntegrationItem, ind) => {
-            switch (ecommerceIntegrationItem.title) {
+        list_of_ecommerceIntegration_objects.forEach((eCommerceIntegrationItem, ind) => {
+            switch (eCommerceIntegrationItem.platform) {
                 case DUMMY_STORE:
-                    eStoreObjects.push(new DummyStore(ecommerceIntegrationItem));
+                    eStoreObjects.push(new DummyStore(eCommerceIntegrationItem));
                     break;
                 // Add more cases here for other e-store titles and their corresponding classes
                 default:
                     console.warn(
-                        `No matching e-store class found for title: ${ecommerceIntegrationItem.title}`
+                        `No matching e-store class found for title: ${eCommerceIntegrationItem.title}`
                     );
                     // throw error that this e-store service is not supported
                     throw new Error(
-                        `E-store service ${ecommerceIntegrationItem.title} is not supported.`
+                        `E-store service ${eCommerceIntegrationItem.platform} is not supported.`
                     );
             }
         });
