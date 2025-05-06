@@ -1,118 +1,68 @@
-// TODO: Implement store controller methods to handle store operations
-
-/**
- * Controller for managing store operations
- * This file will contain methods for handling store CRUD functionalities
- */
-
 import Store from '../models/Store.js';
-import { v4 as uuidv4 } from 'uuid';
 
-/**
- * Create a new store
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const createStore = async (req, res) => {
     try {
-        const { name } = req.body;
-        const store = new Store({
-            id: uuidv4(),
-            owner: req.user._id,
-            name,
-        });
-        await store.save();
-        res.status(201).json(store);
+        // this will be used inside a post request
+        const store = new Store(req.body); // create a new store object with the data from the request body
+        await store.save(); // save the store to the database
+        console.log("Store created: ", store._id); // log the store id to the console
+        return res.status(201).json({ message: "Store created successfully", store }); // return a success message and the store object
     } catch (error) {
-        res.status(500).json({ message: 'Error creating store', error: error.message });
-    }
+        console.error("Error creating store: ", error); // log the error to the console
+        return res.status(500).json({ message: "Error creating store", error }); // return an error message and the error object
+    } 
 };
 
-/**
- * Get all stores for the logged-in user with optional filters
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const getStores = async (req, res) => {
-    try {
-        const { name, sortBy, sortOrder } = req.query;
-        let query = { owner: req.user._id, deleted: false };
-
-        if (name) {
-            query.name = { $regex: name, $options: 'i' };
-        }
-
-        let stores = Store.find(query);
-
-        // Apply sorting if specified
-        if (sortBy) {
-            const sortDirection = sortOrder === 'desc' ? -1 : 1;
-            stores = stores.sort({ [sortBy]: sortDirection });
-        }
-
-        const result = await stores;
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching stores', error: error.message });
+    const uid = req.body?.uid; // if body exists and there is key named uid in it, then define const uid
+    
+    if (!uid) {
+        // if uid is not provided, return all stores in the database
+        const stores = await Store.find({});
+        return res.status(200).json({ message: "Stores fetched successfully", stores });
     }
+    // if uid is provided, return all stores under the user
+    const stores = await Store.find({ owner: uid }); // updated query to match 'owner' field with 'uid'
+    if (stores.length === 0) {
+        return res.status(404).json({ message: "No stores found for this user" });
+    }
+    return res.status(200).json({ message: "Stores fetched successfully", stores });
 };
 
-/**
- * Get a single store by ID
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const getStoreById = async (req, res) => {
-    try {
-        const store = await Store.findOne({ id: req.params.id, owner: req.user._id, deleted: false });
-        if (!store) {
-            return res.status(404).json({ message: 'Store not found' });
-        }
-        res.json(store);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching store', error: error.message });
+    // get the store id from the url
+    const storeId = req.params.sid; // get the store id from the url
+    // find the store in the database
+    const store = await Store.findById(storeId); // find the store in the database
+    if (!store) {
+        return res.status(404).json({ message: "Store not found" });
     }
+    console.log("Store fetched: ", storeId);
+    console.log("Store: ", store);
+    return res.status(200).json({ message: "Store fetched successfully", store });
 };
 
-/**
- * Update a store
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const updateStore = async (req, res) => {
-    try {
-        const { name } = req.body;
-        const store = await Store.findOneAndUpdate(
-            { id: req.params.id, owner: req.user._id, deleted: false },
-            { name },
-            { new: true }
-        );
-        if (!store) {
-            return res.status(404).json({ message: 'Store not found' });
-        }
-        res.json(store);
-    } catch (error) {
-        res.status(500).json({ message: 'Error updating store', error: error.message });
+    // this will be used inside a patch request
+    const storeId = req.params.sid; // get the store id from the url
+    const store = await Store.findById(storeId); // find the store in the database
+    if (!store) {
+        return res.status(404).json({ message: "Store not found" });
     }
+    // update the store with the new data
+    const updatedStore = await Store.findByIdAndUpdate(storeId, req.body, { new: true });
+    return res.status(200).json({ message: "Store updated successfully", updatedStore });
 };
 
-/**
- * Soft delete a store
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const deleteStore = async (req, res) => {
-    try {
-        const store = await Store.findOneAndUpdate(
-            { id: req.params.id, owner: req.user._id, deleted: false },
-            { deleted: true },
-            { new: true }
-        );
-        if (!store) {
-            return res.status(404).json({ message: 'Store not found' });
-        }
-        res.json({ message: 'Store deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: 'Error deleting store', error: error.message });
+    // this will be used inside a delete request
+    // set the isDeleted field to true
+    const storeId = req.params.sid; // get the store id from the url
+    const store = await Store.findById(storeId); // find the store in the database
+    if (!store) {
+        return res.status(404).json({ message: "Store not found" });
     }
+    // update the store with the new data
+    const updatedStore = await Store.findByIdAndUpdate(storeId, { isDeleted: true }, { new: true });
+    return res.status(200).json({ message: "Store deleted successfully", updatedStore });
 };

@@ -1,98 +1,26 @@
 import express from 'express';
-import passport from 'passport';
-import Store from '../models/Store.js';
-import { v4 as uuidv4 } from 'uuid';
+import { getAllStores, createStore, updateStore, deleteStore, getStoreById } from '../controllers/storeController.js';
 
 //TODO: fix and test tall the following services
 const router = express.Router();
 
-// Create a new store
-router.post('/', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    try {
-        const { name } = req.body;
-        const store = new Store({
-            id: uuidv4(),
-            owner: req.user._id,
-            name,
-        });
-        await store.save();
-        res.status(201).json(store);
-    } catch (error) {
-        res.status(500).json({ message: 'Error creating store', error: error.message });
-    }
-});
+// Route Format:
+// REQ_TYPE ROUTE {PAYLOAD} : DESCRIPTION (SUCCESS STATUS CODE). [POTENTIAL QUERY PARAMETERS (are optional and will be fetched form url)]
 
-// Get all stores for the logged-in user with optional filters
-router.get('/', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    try {
-        const { name, sortBy, sortOrder } = req.query;
-        let query = { owner: req.user._id, deleted: false };
+// -------------------------------------------------------------------------------------------------
 
-        if (name) {
-            query.name = { $regex: name, $options: 'i' };
-        }
+// STORES:
+// ✅ GET stores/ {uid} : Returns all the stores under a user (200).
+// ✅ GET stores/ {} : Returns all the stores existing in the database (200).
+// ✅ GET stores/:sid {} : Returns the store with id = sid (200).
+// ✅ POST stores/ {store} : Returns the created store id created via provided store details (201).
+// ✅ PATCH stores/:sid {store} : Updates the store with id = sid (200).
+// ✅ DELETE stores/:sid {} : Soft deletes a store with id = sid (200).
 
-        let stores = Store.find(query);
-
-        // Apply sorting if specified
-        if (sortBy) {
-            const sortDirection = sortOrder === 'desc' ? -1 : 1;
-            stores = stores.sort({ [sortBy]: sortDirection });
-        }
-
-        const result = await stores;
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching stores', error: error.message });
-    }
-});
-
-// Get a single store by ID
-router.get('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    try {
-        const store = await Store.findOne({ id: req.params.id, owner: req.user._id, deleted: false });
-        if (!store) {
-            return res.status(404).json({ message: 'Store not found' });
-        }
-        res.json(store);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching store', error: error.message });
-    }
-});
-
-// Update a store
-router.put('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    try {
-        const { name } = req.body;
-        const store = await Store.findOneAndUpdate(
-            { id: req.params.id, owner: req.user._id, deleted: false },
-            { name },
-            { new: true }
-        );
-        if (!store) {
-            return res.status(404).json({ message: 'Store not found' });
-        }
-        res.json(store);
-    } catch (error) {
-        res.status(500).json({ message: 'Error updating store', error: error.message });
-    }
-});
-
-// Soft delete a store
-router.delete('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    try {
-        const store = await Store.findOneAndUpdate(
-            { id: req.params.id, owner: req.user._id, deleted: false },
-            { deleted: true },
-            { new: true }
-        );
-        if (!store) {
-            return res.status(404).json({ message: 'Store not found' });
-        }
-        res.json({ message: 'Store deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: 'Error deleting store', error: error.message });
-    }
-});
+router.get('/', getAllStores); // get all stores under a user or all stores in the database
+router.get('/:sid', getStoreById); // get a store with id = sid
+router.post('/', createStore); // create a new store
+router.patch('/:sid', updateStore); // update a store with id = sid
+router.delete('/:sid', deleteStore); // soft delete a store with id = sid
 
 export default router;
