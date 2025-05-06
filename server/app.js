@@ -10,6 +10,7 @@ import cors from 'cors';
 // importing all the routes
 import authRoutes from './routes/authRoutes.js';
 import storeRoutes from './routes/storeRoutes.js';
+import productRoutes from './routes/productRoutes.js';
 
 const app = express();
 app.use(cors());
@@ -34,6 +35,7 @@ app.use(passport.session());
 // Routes 
 app.use('/api/auth', authRoutes);// for authentication service
 app.use('/api/stores', storeRoutes);
+app.use('/api/products', productRoutes);
 
 // TODO: user
 
