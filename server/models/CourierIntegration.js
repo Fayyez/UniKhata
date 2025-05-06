@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
+import { DUMMY_COURIER } from "../utils/constants.js";
 
 const courierIntegrationSchema = new mongoose.Schema({
     store: { type: mongoose.Schema.Types.ObjectId, ref: 'Store' },
     title: String,
-    courierName: String, // from "../utils/constants.js"
+    courierName: { type: String, default: DUMMY_COURIER }, // from "../utils/constants.js"
     emailOrCredential: String,
     apiEndpoint: String,
     token: String
