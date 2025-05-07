@@ -8,6 +8,11 @@ const router = express.Router();
 // all business logic should be in ../controllers/orderController.js
 // 
 
+// Route Format:
+// REQ_TYPE ROUTE {PAYLOAD} : DESCRIPTION (SUCCESS STATUS CODE). [POTENTIAL QUERY PARAMETERS (are optional and will be fetched form url)]
+
+// -------------------------------------------------------------------------------------------------
+
 // ORDERS:
 // GET orders/ {uid} : Returns all the orders under a user (200).
 // GET orders/ {storeid} : Returns all the orders under a specific store (200).
