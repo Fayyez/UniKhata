@@ -18,7 +18,8 @@ const courierIntegrationSchema = new mongoose.Schema({
     emailOrCredential: String,
     apiEndpoint: String,
     token: String
-});
+}, { timestamps: true } // adds operational timestamps to the schema
+);
 
 courierIntegrationSchema.plugin(AutoIncrement, { id: 'courier_integration_id_counter', inc_field: '_id' }); // for auto incrementing the courier integration id
 
