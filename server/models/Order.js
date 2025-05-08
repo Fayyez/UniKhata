@@ -14,13 +14,13 @@ const orderSchema = new mongoose.Schema({
     },
     productEntries: [productEntrySchema], // entries of products in the order
     store: { // store id
-        type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true 
+        type: Number, ref: 'Store', required: true 
     }, 
     platform:  { // eCommerce platform id
-        type: mongoose.Schema.Types.ObjectId, ref: 'ECommerceIntegration', required: true 
+        type: Number, ref: 'ECommerceIntegration', required: true 
     },
     courier: { // courier id
-        type: mongoose.Schema.Types.ObjectId, ref: 'CourierIntegration' 
+        type: Number, ref: 'CourierIntegration' 
     },
     status: { // order status
         type: String, required: true 

@@ -11,10 +11,14 @@ const storeSchema = new mongoose.Schema({
         type: String, required: true 
     },
     owner: { // store owner id
-        type: mongoose.Schema.Types.ObjectId, ref: 'User' 
+        type: Number, ref: 'User' 
     },
-    eCommerceIntegrations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ECommerceIntegration' }], // eCommerce integrations linked to the store
-    courierIntegrations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CourierIntegration' }], // courier integrations linked to the store
+    eCommerceIntegrations: [{ 
+        type: Number, ref: 'ECommerceIntegration' 
+    }], // eCommerce integrations linked to the store
+    courierIntegrations: [{ 
+        type: Number, ref: 'CourierIntegration' 
+    }], // courier integrations linked to the store
     isDeleted: { // store is deleted or not
         type: Boolean, default: false 
     },

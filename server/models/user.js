@@ -20,7 +20,9 @@ const userSchema = new mongoose.Schema({
     googleId: { // google id for the user
         type: String, sparse: true, unique: true 
     },
-    stores: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Store' }], // stores owned by the user
+    stores: [{ 
+        type: Number, ref: 'Store' 
+    }], // stores owned by the user
     isDeleted: { // user is deleted or not
         type: Boolean, default: false 
     }

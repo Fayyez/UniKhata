@@ -19,10 +19,10 @@ const productSchema = new mongoose.Schema({
         type: Number, required: true 
     },
     addedBy: { // user id who added the product
-        type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true 
+        type: Number, ref: 'User', required: true 
     },
     store: { // store id
-        type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true 
+        type: Number, ref: 'Store', required: true 
     },
     tag: { // product tag
         type: String, default: "" 

@@ -9,7 +9,7 @@ const courierIntegrationSchema = new mongoose.Schema({
         type: Number, unique: true 
     },
     store: { 
-        type: mongoose.Schema.Types.ObjectId, ref: 'Store' 
+        type: Number, ref: 'Store' 
     },
     title: String,
     courierName: { 

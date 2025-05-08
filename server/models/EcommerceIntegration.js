@@ -8,7 +8,9 @@ const eCommerceIntegrationSchema = new mongoose.Schema({
     _id: { // eCommerce integration id
         type: Number, unique: true 
     },
-    store: { type: mongoose.Schema.Types.ObjectId, ref: 'Store' },
+    store: { 
+        type: Number, ref: 'Store' 
+    },
     title: String, // title of the eCommerce integration
     platform: { 
         type: String, default: DUMMY_STORE 
