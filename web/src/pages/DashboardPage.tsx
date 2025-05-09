@@ -58,44 +58,55 @@ const DashboardPage: React.FC = () => {
   ];
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const accessToken = params.get('accessToken');
-    const refreshToken = params.get('refreshToken');
-
-    if (accessToken && refreshToken) {
-      // Store tokens in localStorage
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-      
-      // Remove tokens from URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-
-    // Check for tokens in localStorage
-    const storedAccessToken = localStorage.getItem('accessToken');
-    if (!storedAccessToken) {
-      setIsAuthorized(false);
-      return;
-    }
-
-    // Set default authorization header
-    axios.defaults.headers.common['Authorization'] = `Bearer ${storedAccessToken}`;
-
-    // Fetch user information
-    const fetchUserInfo = async () => {
+    const initializeAuth = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/auth/user-info');
+        // First check URL parameters for tokens (from Google login)
+        const params = new URLSearchParams(location.search);
+        const accessToken = params.get('accessToken');
+        const refreshToken = params.get('refreshToken');
+
+        if (accessToken && refreshToken) {
+          // Store tokens from Google login
+          localStorage.setItem('accessToken', accessToken);
+          localStorage.setItem('refreshToken', refreshToken);
+          axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+          
+          // Remove tokens from URL for security
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          // Fetch user info immediately after storing tokens
+          const response = await axios.get('http://localhost:5000/api/auth/user-info');
+          setUserInfo(response.data);
+          setIsAuthorized(true);
+          return;
+        }
+
+        // If no tokens in URL, check localStorage
+        const storedAccessToken = localStorage.getItem('accessToken');
+        if (!storedAccessToken) {
+          setIsAuthorized(false);
+          return;
+        }
+
+        // Set authorization header for subsequent requests
+        axios.defaults.headers.common['Authorization'] = `Bearer ${storedAccessToken}`;
+
+        // Fetch user information
+        const response = await axios.get('http://localhost:5000/api/auth/user-info');
         setUserInfo(response.data);
         setIsAuthorized(true);
       } catch (err) {
-        setError('Failed to fetch user information');
-        console.error(err);
+        console.error('Auth error:', err);
+        setError('Failed to authenticate');
         setIsAuthorized(false);
+        // Clear invalid tokens
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        delete axios.defaults.headers.common['Authorization'];
       }
     };
 
-    fetchUserInfo();
+    initializeAuth();
   }, [navigate, location]);
 
   const handleLogout = () => {

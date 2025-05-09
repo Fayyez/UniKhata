@@ -42,17 +42,14 @@ export const login = createAsyncThunk<AuthResponse, LoginCredentials, { rejectVa
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API_URL}/login`, credentials);
-      // Extract tokens from query parameters
-      const urlParams = new URLSearchParams(window.location.search);
-      const accessToken = urlParams.get('accessToken');
-      const refreshToken = urlParams.get('refreshToken');
+      const { accessToken, refreshToken, user } = response.data;
       
       if (accessToken && refreshToken) {
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
-        return { ...response.data, accessToken, refreshToken };
+        return { accessToken, refreshToken, user };
       } else {
-        throw new Error('Tokens not found in query parameters');
+        throw new Error('Tokens not found in response');
       }
     } catch (error: any) {
       return rejectWithValue({
