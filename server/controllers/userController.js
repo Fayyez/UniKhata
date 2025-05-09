@@ -7,7 +7,7 @@ export const getUserProfile = async (req, res) => {
         if (!userId) return res.status(401).json({ message: 'Unauthorized' });
         const user = await User.findOne({ _id: userId, isDeleted: false }).select('-password');
         if (!user) return res.status(404).json({ message: 'User not found' });
-        res.status(200).json(user);
+        res.status(200).json({ message: 'User profile fetched successfully', user });
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
     }
@@ -29,7 +29,7 @@ export const updateUserProfile = async (req, res) => {
             { new: true }
         ).select('-password');
         if (!updated) return res.status(404).json({ message: 'User not found' });
-        res.status(200).json(updated);
+        res.status(200).json({ message: 'User profile updated successfully', user: updated });
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
     }
@@ -65,7 +65,7 @@ export const changeAvatar = async (req, res) => {
             { new: true }
         );
         if (!user) return res.status(404).json({ message: 'User not found' });
-        res.status(200).json(user);
+        res.status(200).json({ message: 'Avatar updated successfully', user });
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
     }
@@ -73,7 +73,7 @@ export const changeAvatar = async (req, res) => {
 
 
 export const deleteAccount = async (req, res) => {
-    try {
+    try {   
         const userId = req.user?._id;
         if (!userId) return res.status(401).json({ message: 'Unauthorized' });
         const user = await User.findOneAndUpdate(
@@ -94,7 +94,7 @@ export const getUserProfileById = async (req, res) => {
         if (!uid) return res.status(400).json({ message: 'User ID required' });
         const user = await User.findOne({ _id: uid, isDeleted: false }).select('-password');
         if (!user) return res.status(404).json({ message: 'User not found' });
-        res.status(200).json(user);
+        res.status(200).json({ message: 'User profile fetched successfully', user });
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
     }
@@ -111,7 +111,7 @@ export const createUser = async (req, res) => {
         await user.save();
         const userObj = user.toObject();
         delete userObj.password;
-        res.status(201).json(userObj);
+        res.status(201).json({ message: 'User created successfully', user: userObj });
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
     }
