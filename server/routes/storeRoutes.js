@@ -1,7 +1,6 @@
 import express from 'express';
 import { getAllStores, createStore, updateStore, deleteStore, getStoreById } from '../controllers/storeController.js';
 
-//TODO: fix and test tall the following services
 const router = express.Router();
 
 // Route Format:
