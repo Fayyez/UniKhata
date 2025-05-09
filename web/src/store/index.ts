@@ -5,7 +5,7 @@ import storeReducer from './slices/storeSlice';
 import productReducer from './slices/productSlice';
 import orderReducer from './slices/orderSlice';
 
-const store = configureStore({
+export const store = configureStore({
   reducer: {
     auth: authReducer,
     user: userReducer,
@@ -18,5 +18,8 @@ const store = configureStore({
       serializableCheck: false
     })
 });
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
 
 export default store; 

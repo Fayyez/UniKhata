@@ -1,10 +1,43 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/users';
+const API_URL = 'http://localhost:4000/api/users';
+
+export interface UserState {
+  profile: any | null;
+  loading: boolean;
+  error: string | null;
+}
+
+interface ErrorResponse {
+  message: string;
+}
+
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  [key: string]: any;
+}
+
+interface PasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
+
+interface AvatarData {
+  avatar: File;
+}
+
+const initialState: UserState = {
+  profile: null,
+  loading: false,
+  error: null
+};
 
 // Async thunks
-export const getUserProfile = createAsyncThunk(
+export const getUserProfile = createAsyncThunk<UserProfile, void, { rejectValue: ErrorResponse }>(
   'user/getProfile',
   async (_, { rejectWithValue }) => {
     try {
@@ -13,13 +46,15 @@ export const getUserProfile = createAsyncThunk(
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
 
-export const getUserProfileById = createAsyncThunk(
+export const getUserProfileById = createAsyncThunk<UserProfile, string, { rejectValue: ErrorResponse }>(
   'user/getProfileById',
   async (userId, { rejectWithValue }) => {
     try {
@@ -28,13 +63,15 @@ export const getUserProfileById = createAsyncThunk(
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
 
-export const updateUserProfile = createAsyncThunk(
+export const updateUserProfile = createAsyncThunk<UserProfile, Partial<UserProfile>, { rejectValue: ErrorResponse }>(
   'user/updateProfile',
   async (userData, { rejectWithValue }) => {
     try {
@@ -43,43 +80,54 @@ export const updateUserProfile = createAsyncThunk(
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
 
-export const changePassword = createAsyncThunk(
+export const changePassword = createAsyncThunk<void, PasswordData, { rejectValue: ErrorResponse }>(
   'user/changePassword',
   async (passwordData, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.post(`${API_URL}/change-password`, passwordData, {
+      await axios.post(`${API_URL}/change-password`, passwordData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
 
-export const changeAvatar = createAsyncThunk(
+export const changeAvatar = createAsyncThunk<UserProfile, AvatarData, { rejectValue: ErrorResponse }>(
   'user/changeAvatar',
   async (avatarData, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await axios.post(`${API_URL}/change-avatar`, avatarData, {
-        headers: { Authorization: `Bearer ${token}` }
+      const formData = new FormData();
+      formData.append('avatar', avatarData.avatar);
+      
+      const response = await axios.post(`${API_URL}/change-avatar`, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
 
-export const deleteAccount = createAsyncThunk(
+export const deleteAccount = createAsyncThunk<void, void, { rejectValue: ErrorResponse }>(
   'user/deleteAccount',
   async (_, { rejectWithValue }) => {
     try {
@@ -89,18 +137,13 @@ export const deleteAccount = createAsyncThunk(
       });
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
-      return null;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
-
-const initialState = {
-  profile: null,
-  loading: false,
-  error: null
-};
 
 const userSlice = createSlice({
   name: 'user',
@@ -117,7 +160,7 @@ const userSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(getUserProfile.fulfilled, (state, action) => {
+      .addCase(getUserProfile.fulfilled, (state, action: PayloadAction<UserProfile>) => {
         state.loading = false;
         state.profile = action.payload;
       })
@@ -130,7 +173,7 @@ const userSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(getUserProfileById.fulfilled, (state, action) => {
+      .addCase(getUserProfileById.fulfilled, (state, action: PayloadAction<UserProfile>) => {
         state.loading = false;
         state.profile = action.payload;
       })
@@ -143,7 +186,7 @@ const userSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateUserProfile.fulfilled, (state, action) => {
+      .addCase(updateUserProfile.fulfilled, (state, action: PayloadAction<UserProfile>) => {
         state.loading = false;
         state.profile = action.payload;
       })
@@ -168,7 +211,7 @@ const userSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(changeAvatar.fulfilled, (state, action) => {
+      .addCase(changeAvatar.fulfilled, (state, action: PayloadAction<UserProfile>) => {
         state.loading = false;
         state.profile = { ...state.profile, ...action.payload };
       })

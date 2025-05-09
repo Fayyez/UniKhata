@@ -1,10 +1,50 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/stores';
+const API_URL = 'http://localhost:4000/api/stores';
+
+export interface StoreState {
+  stores: Store[];
+  currentStore: Store | null;
+  loading: boolean;
+  error: string | null;
+}
+
+interface ErrorResponse {
+  message: string;
+}
+
+export interface Store {
+  id: string;
+  name: string;
+  description: string;
+  address: string;
+  phone: string;
+  email: string;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
+  [key: string]: any;
+}
+
+interface CreateStoreData {
+  name: string;
+  description: string;
+  address: string;
+  phone: string;
+  email: string;
+  [key: string]: any;
+}
+
+const initialState: StoreState = {
+  stores: [],
+  currentStore: null,
+  loading: false,
+  error: null
+};
 
 // Async thunks
-export const getAllStores = createAsyncThunk(
+export const getAllStores = createAsyncThunk<Store[], void, { rejectValue: ErrorResponse }>(
   'store/getAll',
   async (_, { rejectWithValue }) => {
     try {
@@ -13,13 +53,15 @@ export const getAllStores = createAsyncThunk(
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
 
-export const getStoreById = createAsyncThunk(
+export const getStoreById = createAsyncThunk<Store, string, { rejectValue: ErrorResponse }>(
   'store/getById',
   async (storeId, { rejectWithValue }) => {
     try {
@@ -28,13 +70,15 @@ export const getStoreById = createAsyncThunk(
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
 
-export const createStore = createAsyncThunk(
+export const createStore = createAsyncThunk<Store, CreateStoreData, { rejectValue: ErrorResponse }>(
   'store/create',
   async (storeData, { rejectWithValue }) => {
     try {
@@ -43,13 +87,15 @@ export const createStore = createAsyncThunk(
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
 
-export const updateStore = createAsyncThunk(
+export const updateStore = createAsyncThunk<Store, { storeId: string; storeData: Partial<CreateStoreData> }, { rejectValue: ErrorResponse }>(
   'store/update',
   async ({ storeId, storeData }, { rejectWithValue }) => {
     try {
@@ -58,13 +104,15 @@ export const updateStore = createAsyncThunk(
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
 
-export const deleteStore = createAsyncThunk(
+export const deleteStore = createAsyncThunk<void, string, { rejectValue: ErrorResponse }>(
   'store/delete',
   async (storeId, { rejectWithValue }) => {
     try {
@@ -72,19 +120,13 @@ export const deleteStore = createAsyncThunk(
       await axios.delete(`${API_URL}/${storeId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      return storeId;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
-
-const initialState = {
-  stores: [],
-  currentStore: null,
-  loading: false,
-  error: null
-};
 
 const storeSlice = createSlice({
   name: 'store',
@@ -93,7 +135,7 @@ const storeSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-    setCurrentStore: (state, action) => {
+    setCurrentStore: (state, action: PayloadAction<Store | null>) => {
       state.currentStore = action.payload;
     }
   },
@@ -104,7 +146,7 @@ const storeSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(getAllStores.fulfilled, (state, action) => {
+      .addCase(getAllStores.fulfilled, (state, action: PayloadAction<Store[]>) => {
         state.loading = false;
         state.stores = action.payload;
       })
@@ -117,7 +159,7 @@ const storeSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(getStoreById.fulfilled, (state, action) => {
+      .addCase(getStoreById.fulfilled, (state, action: PayloadAction<Store>) => {
         state.loading = false;
         state.currentStore = action.payload;
       })
@@ -130,7 +172,7 @@ const storeSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(createStore.fulfilled, (state, action) => {
+      .addCase(createStore.fulfilled, (state, action: PayloadAction<Store>) => {
         state.loading = false;
         state.stores.push(action.payload);
       })
@@ -143,13 +185,13 @@ const storeSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateStore.fulfilled, (state, action) => {
+      .addCase(updateStore.fulfilled, (state, action: PayloadAction<Store>) => {
         state.loading = false;
-        const index = state.stores.findIndex(store => store._id === action.payload._id);
+        const index = state.stores.findIndex(store => store.id === action.payload.id);
         if (index !== -1) {
           state.stores[index] = action.payload;
         }
-        if (state.currentStore?._id === action.payload._id) {
+        if (state.currentStore?.id === action.payload.id) {
           state.currentStore = action.payload;
         }
       })
@@ -164,8 +206,8 @@ const storeSlice = createSlice({
       })
       .addCase(deleteStore.fulfilled, (state, action) => {
         state.loading = false;
-        state.stores = state.stores.filter(store => store._id !== action.payload);
-        if (state.currentStore?._id === action.payload) {
+        state.stores = state.stores.filter(store => store.id !== action.meta.arg);
+        if (state.currentStore?.id === action.meta.arg) {
           state.currentStore = null;
         }
       })

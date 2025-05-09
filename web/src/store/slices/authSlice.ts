@@ -1,10 +1,43 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'http://localhost:4000/api/auth';
+
+export interface AuthState {
+  user: any | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user?: any;
+}
+
+interface ErrorResponse {
+  message: string;
+}
+
+const initialState: AuthState = {
+  user: null,
+  accessToken: localStorage.getItem('accessToken'),
+  refreshToken: localStorage.getItem('refreshToken'),
+  isAuthenticated: !!localStorage.getItem('accessToken'),
+  loading: false,
+  error: null
+};
 
 // Async thunks
-export const login = createAsyncThunk(
+export const login = createAsyncThunk<AuthResponse, LoginCredentials, { rejectValue: ErrorResponse }>(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
@@ -21,13 +54,15 @@ export const login = createAsyncThunk(
       } else {
         throw new Error('Tokens not found in query parameters');
       }
-    } catch (error) {
-      return rejectWithValue(error.response?.data || { message: error.message });
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
 
-export const register = createAsyncThunk(
+export const register = createAsyncThunk<AuthResponse, any, { rejectValue: ErrorResponse }>(
   'auth/register',
   async (userData, { rejectWithValue }) => {
     try {
@@ -35,13 +70,15 @@ export const register = createAsyncThunk(
       localStorage.setItem('accessToken', response.data.accessToken);
       localStorage.setItem('refreshToken', response.data.refreshToken);
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
 
-export const refreshToken = createAsyncThunk(
+export const refreshToken = createAsyncThunk<AuthResponse, void, { rejectValue: ErrorResponse }>(
   'auth/refreshToken',
   async (_, { rejectWithValue }) => {
     try {
@@ -49,13 +86,15 @@ export const refreshToken = createAsyncThunk(
       const response = await axios.post(`${API_URL}/refresh`, { refreshToken });
       localStorage.setItem('accessToken', response.data.accessToken);
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
 
-export const getUserInfo = createAsyncThunk(
+export const getUserInfo = createAsyncThunk<any, void, { rejectValue: ErrorResponse }>(
   'auth/getUserInfo',
   async (_, { rejectWithValue }) => {
     try {
@@ -64,20 +103,13 @@ export const getUserInfo = createAsyncThunk(
         headers: { Authorization: `Bearer ${token}` }
       });
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
+    } catch (error: any) {
+      return rejectWithValue({
+        message: error.response?.data?.message || error.message
+      });
     }
   }
 );
-
-const initialState = {
-  user: null,
-  accessToken: localStorage.getItem('accessToken'),
-  refreshToken: localStorage.getItem('refreshToken'),
-  isAuthenticated: !!localStorage.getItem('accessToken'),
-  loading: false,
-  error: null
-};
 
 const authSlice = createSlice({
   name: 'auth',
@@ -102,11 +134,14 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(login.fulfilled, (state, action) => {
+      .addCase(login.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         state.loading = false;
         state.isAuthenticated = true;
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
+        if (action.payload.user) {
+          state.user = action.payload.user;
+        }
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -117,18 +152,21 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(register.fulfilled, (state, action) => {
+      .addCase(register.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         state.loading = false;
         state.isAuthenticated = true;
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
+        if (action.payload.user) {
+          state.user = action.payload.user;
+        }
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || 'Registration failed';
       })
       // Refresh Token
-      .addCase(refreshToken.fulfilled, (state, action) => {
+      .addCase(refreshToken.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         state.accessToken = action.payload.accessToken;
       })
       // Get User Info
