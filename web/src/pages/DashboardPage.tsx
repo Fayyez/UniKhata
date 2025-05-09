@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { getUserInfo } from "../store/slices/authSlice";
+import type { AppDispatch, RootState } from "../store";
 import UnauthorizedPage from "./UnauthorizedPage";
 
 interface UserInfo {
@@ -42,12 +44,14 @@ const DashboardPage: React.FC = () => {
     },
   ]);
 
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const { user: userInfo, loading, error } = useSelector((state: RootState) => state.auth);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  console.log('Dashboard State:', { userInfo, loading, error, isAuthorized });
 
   const defaultColors = [
     "bg-[#1967d2]", // Blue
@@ -65,54 +69,53 @@ const DashboardPage: React.FC = () => {
         const accessToken = params.get('accessToken');
         const refreshToken = params.get('refreshToken');
 
+        console.log('Tokens from URL:', { accessToken, refreshToken });
+
         if (accessToken && refreshToken) {
           // Store tokens from Google login
           localStorage.setItem('accessToken', accessToken);
           localStorage.setItem('refreshToken', refreshToken);
-          axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-          
           // Remove tokens from URL for security
           window.history.replaceState({}, document.title, window.location.pathname);
           
-          // Fetch user info immediately after storing tokens
-          const response = await axios.get('http://localhost:5000/api/auth/user-info');
-          setUserInfo(response.data);
+          // Fetch user info using Redux thunk
+          console.log('Fetching user info with URL tokens...');
+          const result = await dispatch(getUserInfo()).unwrap();
+          console.log('User info result:', result);
           setIsAuthorized(true);
           return;
         }
 
         // If no tokens in URL, check localStorage
         const storedAccessToken = localStorage.getItem('accessToken');
+        console.log('Stored access token:', storedAccessToken);
+
         if (!storedAccessToken) {
+          console.log('No stored token found');
           setIsAuthorized(false);
           return;
         }
 
-        // Set authorization header for subsequent requests
-        axios.defaults.headers.common['Authorization'] = `Bearer ${storedAccessToken}`;
-
-        // Fetch user information
-        const response = await axios.get('http://localhost:5000/api/auth/user-info');
-        setUserInfo(response.data);
+        // Fetch user info using Redux thunk
+        console.log('Fetching user info with stored token...');
+        const result = await dispatch(getUserInfo()).unwrap();
+        console.log('User info result:', result);
         setIsAuthorized(true);
       } catch (err) {
         console.error('Auth error:', err);
-        setError('Failed to authenticate');
         setIsAuthorized(false);
         // Clear invalid tokens
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        delete axios.defaults.headers.common['Authorization'];
       }
     };
 
     initializeAuth();
-  }, [navigate, location]);
+  }, [dispatch, location, navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    delete axios.defaults.headers.common['Authorization'];
     navigate('/login');
   };
 
@@ -141,7 +144,7 @@ const DashboardPage: React.FC = () => {
     );
   }
 
-  if (!userInfo) {
+  if (loading || !userInfo) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-xl">Loading...</div>
@@ -276,3 +279,4 @@ const DashboardPage: React.FC = () => {
 };
 
 export default DashboardPage;
+

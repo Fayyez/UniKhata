@@ -41,13 +41,16 @@ export const login = createAsyncThunk<AuthResponse, LoginCredentials, { rejectVa
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/login`, credentials);
-      const { accessToken, refreshToken, user } = response.data;
+      const response = await axios.post(`${API_URL}/login`, {
+        email: credentials.email.toLowerCase(),
+        password: credentials.password
+      });
+      const { accessToken, refreshToken } = response.data;
       
       if (accessToken && refreshToken) {
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
-        return { accessToken, refreshToken, user };
+        return { accessToken, refreshToken };
       } else {
         throw new Error('Tokens not found in response');
       }
@@ -96,11 +99,15 @@ export const getUserInfo = createAsyncThunk<any, void, { rejectValue: ErrorRespo
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('accessToken');
+      console.log('Getting user info with token:', token);
+      
       const response = await axios.get(`${API_URL}/user-info`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('User info response:', response.data);
       return response.data;
     } catch (error: any) {
+      console.error('Get user info error:', error.response?.data || error.message);
       return rejectWithValue({
         message: error.response?.data?.message || error.message
       });
