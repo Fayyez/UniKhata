@@ -14,14 +14,16 @@ import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import integrationRoutes from './routes/integrationRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import logger from './utils/logger.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(logger);
 
 // connectiing to the database
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('Connected to MongoDB'))
+    .then(() => console.log('\x1b[33m>> Connected to MongoDB\x1b[0m\n'))
     .catch(err => console.log(err));
 
 import './utils/passport.js'
@@ -46,4 +48,4 @@ app.use('/api/integrations', integrationRoutes);
 app.use('/api/users', userRoutes);
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`>> Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`\x1b[32m>> Server Running On Port '${PORT}'\x1b[0m`));
