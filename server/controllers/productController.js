@@ -1,79 +1,109 @@
-// TODO: Implement product controller methods to handle product-related operations
-
-/**
- * Controller for managing product operations
- * This file will contain methods for handling various product CRUD functionalities
- */
-
 import Product from '../models/Product.js';
-import ProductCounter from '../models/ProductCounter.js';
 
-/**
- * Get all products for all stores a user has access to
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const getAllProducts = async (req, res) => {
+    const uid = req.body?.uid;
+    const sid = req.body?.sid; 
+    const filters = req.query;
+
+    const filtersExist = Object.keys(filters).length > 0; // check if filters exist
+
+    if ((uid && !Number.isInteger(uid)) || (sid && !Number.isInteger(sid))) {
+        return res.status(400).json({ message: "Invalid uid or sid" });
+    }
+
     try {
-        // Implementation to get all products for all stores integrated with the user
-        res.status(501).json({ message: "Not implemented yet" });
+        if (uid && !sid && !filtersExist) { // if there's only uid
+            const userProducts = await Product.find({ addedBy : uid, isDeleted: false });
+            if (userProducts.length === 0) {
+                return res.status(404).json({ message: "No products found for this user" });
+            }
+            return res.status(200).json({ message: "Products fetched successfully", products: userProducts });
+        } else if (sid && !uid && !filtersExist) {
+            const storeProducts = await Product.find({ store: sid, isDeleted: false });
+            if (storeProducts.length === 0) {
+                return res.status(404).json({ message: "No products found for this store" });
+            }
+            return res.status(200).json({ message: "Products fetched successfully", products: storeProducts });
+        } else if (uid && sid && !filtersExist) {
+            const userStoreProducts = await Product.find({ addedBy : uid, store:sid, isDeleted: false });
+            if (userStoreProducts.length === 0) {
+                return res.status(404).json({ message: "No products found for this user and store" });
+            }
+            return res.status(200).json({ message: "Products fetched successfully", products: userStoreProducts });
+        } else if (filtersExist) {
+            // TODO: implement filters
+            return res.status(501).json({ message: "Filters are not supported yet" });
+        } else {
+            console.log("Fetching all products in the database");
+            const allProducts = await Product.find({ isDeleted: false }); // fetch all products in the database
+            return res.status(200).json({ message: "Products fetched successfully", products: allProducts });
+        }
     } catch (error) {
-        res.status(500).json({ message: "Error fetching products", error: error.message });
+        console.error("Error fetching products: ", error); // log the error to the console
+        return res.status(500).json({ message: "Error fetching products", error }); // return an error message and the error object
     }
 };
 
-/**
- * Get products for a specific store
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-export const getProductsByStore = async (req, res) => {
+export const getProductById = async (req, res) => {
+    const productId = req.params.pid; // get the product id from the url
+
     try {
-        // Implementation to get products for a specific store
-        res.status(501).json({ message: "Not implemented yet" });
+        const product = await Product.findById(productId); // find the product in the database
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        console.log("Product fetched: ", productId);
+        console.log("Product: ", product);
+        return res.status(200).json({ message: "Product fetched successfully", product });
     } catch (error) {
-        res.status(500).json({ message: "Error fetching store products", error: error.message });
+        console.error("Error fetching product: ", error); // log the error to the console
+        return res.status(500).json({ message: "Error fetching product", error }); // return an error message and the error object
     }
 };
 
-/**
- * Create a new product
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const createProduct = async (req, res) => {
+    const newProduct = req.body;
+    const product = new Product(newProduct); // create a new product object with the provided data
+    
+    if (!newProduct.name || !newProduct.price || isNaN(newProduct.price) || newProduct.price < 0) {
+        return res.status(400).json({ message: "Invalid product data" });
+    }
+    
     try {
-        // Implementation to create a new product
-        res.status(501).json({ message: "Not implemented yet" });
+        const savedProduct = await product.save(); // save the product to the database
+        console.log("Product created: ", savedProduct._id); // log the product id to the console
+        return res.status(201).json({ message: "Product created successfully", product: savedProduct }); // return a success message and the product object
     } catch (error) {
-        res.status(500).json({ message: "Error creating product", error: error.message });
+        console.error("Error creating product: ", error); // log the error to the console
+        return res.status(500).json({ message: "Error creating product", error }); // return an error message and the error object
     }
 };
 
-/**
- * Update an existing product
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const updateProduct = async (req, res) => {
+    const productId = req.params.pid; // get the product id from the url
     try {
-        // Implementation to update a product
-        res.status(501).json({ message: "Not implemented yet" });
+        const product = await Product.findByIdAndUpdate(productId, req.body, { new: true, runValidators: true }); // ensure productId is used as is and validators are run
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        return res.status(200).json({ message: "Product updated successfully", product }); // return a success message and the updated product
     } catch (error) {
-        res.status(500).json({ message: "Error updating product", error: error.message });
+        console.error("Error updating product: ", error); // log the error to the console
+        return res.status(500).json({ message: "Error updating product", error }); // return an error message and the error object
     }
 };
 
-/**
- * Delete a product
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
+
 export const deleteProduct = async (req, res) => {
+    const productId = req.params.pid; // get the product id from the url
     try {
-        // Implementation to delete a product
-        res.status(501).json({ message: "Not implemented yet" });
+        const product = await Product.findByIdAndUpdate(productId, { isDeleted: true }, { new: true }); // soft delete the product in the database
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        return res.status(200).json({ message: "Product deleted successfully", productId }); // return a success message and the product id
     } catch (error) {
-        res.status(500).json({ message: "Error deleting product", error: error.message });
+        console.error("Error deleting product: ", error); // log the error to the console
+        return res.status(500).json({ message: "Error deleting product", error }); // return an error message and the error object
     }
 };

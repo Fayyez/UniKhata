@@ -1,118 +1,119 @@
-// TODO: Implement store controller methods to handle store operations
-
-/**
- * Controller for managing store operations
- * This file will contain methods for handling store CRUD functionalities
- */
-
 import Store from '../models/Store.js';
-import { v4 as uuidv4 } from 'uuid';
+import User from '../models/User.js';
 
-/**
- * Create a new store
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-export const createStore = async (req, res) => {
+// GET /stores/ {uid?} : Returns all stores under a user or all stores in the database
+export const getAllStores = async (req, res) => {
     try {
-        const { name } = req.body;
-        const store = new Store({
-            id: uuidv4(),
-            owner: req.user._id,
-            name,
-        });
-        await store.save();
-        res.status(201).json(store);
+        const uid = req.body?.uid; 
+        let stores;
+        if (uid) {
+            if (isNaN(uid)) {
+                return res.status(400).json({ message: 'Invalid uid' });
+            }
+            stores = await Store.find({ owner: uid, isDeleted: false });
+        } else {
+            stores = await Store.find({ isDeleted: false });
+        }
+        return res.status(200).json({ message: 'Stores fetched successfully', stores });
     } catch (error) {
-        res.status(500).json({ message: 'Error creating store', error: error.message });
+        return res.status(500).json({ message: 'Error fetching stores', error: error.message });
     }
 };
 
-/**
- * Get all stores for the logged-in user with optional filters
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-export const getStores = async (req, res) => {
-    try {
-        const { name, sortBy, sortOrder } = req.query;
-        let query = { owner: req.user._id, deleted: false };
-
-        if (name) {
-            query.name = { $regex: name, $options: 'i' };
-        }
-
-        let stores = Store.find(query);
-
-        // Apply sorting if specified
-        if (sortBy) {
-            const sortDirection = sortOrder === 'desc' ? -1 : 1;
-            stores = stores.sort({ [sortBy]: sortDirection });
-        }
-
-        const result = await stores;
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching stores', error: error.message });
-    }
-};
-
-/**
- * Get a single store by ID
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
+// GET /stores/:sid : Returns the store with id = sid
 export const getStoreById = async (req, res) => {
     try {
-        const store = await Store.findOne({ id: req.params.id, owner: req.user._id, deleted: false });
+        const sid = req.params.sid;
+        if (!sid || isNaN(sid)) {
+            return res.status(400).json({ message: 'Invalid store id' });
+        }
+        const store = await Store.findOne({ _id: sid, isDeleted: false });
         if (!store) {
             return res.status(404).json({ message: 'Store not found' });
         }
-        res.json(store);
+        return res.status(200).json({ message: 'Store fetched successfully', store });
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching store', error: error.message });
+        return res.status(500).json({ message: 'Error fetching store', error: error.message });
     }
 };
 
-/**
- * Update a store
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
+// POST /stores/ : Create a new store
+export const createStore = async (req, res) => {
+    try {
+        const { name, owner, eCommerceIntegrations, courierIntegrations } = req.body;
+        if (!name) {
+            return res.status(400).json({ message: 'Store name is required' });
+        }
+        if (!owner || isNaN(owner)) {
+            return res.status(400).json({ message: 'Valid owner id is required' });
+        }
+        // Optionally check if owner exists
+        const user = await User.findOne({ _id: owner, isDeleted: false });
+        if (!user) {
+            return res.status(404).json({ message: 'Owner user not found' });
+        }
+        const newStore = new Store({
+            name,
+            owner,
+            eCommerceIntegrations: eCommerceIntegrations || [],
+            courierIntegrations: courierIntegrations || [],
+        });
+        const savedStore = await newStore.save();
+        // Add store to user's stores array
+        user.stores.push(savedStore._id);
+        await user.save();
+        return res.status(201).json({ message: 'Store created successfully', store: savedStore });
+    } catch (error) {
+        return res.status(500).json({ message: 'Error creating store', error: error.message });
+    }
+};
+
+// PATCH /stores/:sid : Update a store
 export const updateStore = async (req, res) => {
     try {
-        const { name } = req.body;
-        const store = await Store.findOneAndUpdate(
-            { id: req.params.id, owner: req.user._id, deleted: false },
-            { name },
-            { new: true }
+        const sid = req.params.sid;
+        if (!sid || isNaN(sid)) {
+            return res.status(400).json({ message: 'Invalid store id' });
+        }
+        const updateData = req.body;
+        // Prevent updating _id
+        if (updateData._id) delete updateData._id;
+        const updatedStore = await Store.findOneAndUpdate(
+            { _id: sid, isDeleted: false },
+            updateData,
+            { new: true, runValidators: true }
         );
-        if (!store) {
+        if (!updatedStore) {
             return res.status(404).json({ message: 'Store not found' });
         }
-        res.json(store);
+        return res.status(200).json({ message: 'Store updated successfully', store: updatedStore });
     } catch (error) {
-        res.status(500).json({ message: 'Error updating store', error: error.message });
+        return res.status(500).json({ message: 'Error updating store', error: error.message });
     }
 };
 
-/**
- * Soft delete a store
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
+// DELETE /stores/:sid : Soft delete a store
 export const deleteStore = async (req, res) => {
     try {
+        const sid = req.params.sid;
+        if (!sid || isNaN(sid)) {
+            return res.status(400).json({ message: 'Invalid store id' });
+        }
         const store = await Store.findOneAndUpdate(
-            { id: req.params.id, owner: req.user._id, deleted: false },
-            { deleted: true },
+            { _id: sid, isDeleted: false },
+            { isDeleted: true },
             { new: true }
         );
         if (!store) {
             return res.status(404).json({ message: 'Store not found' });
         }
-        res.json({ message: 'Store deleted successfully' });
+        // Remove store from user's stores array
+        await User.updateOne(
+            { _id: store.owner },
+            { $pull: { stores: store._id } }
+        );
+        return res.status(200).json({ message: 'Store deleted successfully', storeId: sid });
     } catch (error) {
-        res.status(500).json({ message: 'Error deleting store', error: error.message });
+        return res.status(500).json({ message: 'Error deleting store', error: error.message });
     }
 };

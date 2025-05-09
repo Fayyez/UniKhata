@@ -1,0 +1,30 @@
+Route Format:
+REQ_TYPE ROUTE {PAYLOAD} : DESCRIPTION (SUCCESS STATUS CODE). [POTENTIAL QUERY PARAMETERS]
+
+-------------------------------------------------------------------------------------------------
+
+PRODUCTS:
+GET products/ {uid} : Returns all the products under a user (200). [?name, ?lowPrice, ?highPrice]
+GET products/ {storeid} : Returns all the products under a specific store (200). [?name, ?lowPrice, ?highPrice]
+GET products/ {} : Returns all the products existing in the database (200). [?name, ?lowPrice, ?highPrice]
+GET products/:pid {} : Returns the product with id = pid (200).
+POST products/ {product} : Returns the created product id (201) created via provided product details.
+PUT products/:pid {product} : Updates the product with id = pid (200).
+DELETE products/:pid {} : Soft deletes a product with id = pid (200).
+
+ORDERS:
+GET orders/ {uid} : Returns all the orders under a user (200).
+GET orders/ {storeid} : Returns all the orders under a specific store (200).
+GET orders/ {} : Returns all the orders existing in the database (200).
+GET orders/:oid {} : Returns the order with id = oid (200).
+POST orders/ {order} : Returns the created order id (201) created via provided order details.
+PUT orders/:oid {order} : Updates the order with id = oid (200).
+DELETE orders/:oid {} : Soft deletes an order with id = oid (200).
+
+STORES:
+GET stores/ {uid} : Returns all the stores under a user (200).
+GET stores/ {} : Returns all the stores existing in the database (200).
+GET stores/:sid {} : Returns the store with id = sid (200).
+POST stores/ {store} : Returns the created store id created via provided store details (201).
+PUT stores/:sid {store} : Updates the store with id = pid (200).
+DELETE stores/:sid {} : Soft deletes a product with id = sid (200).
