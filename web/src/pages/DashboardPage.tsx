@@ -7,6 +7,7 @@ import { getUserInfo } from "../store/slices/authSlice";
 import type { AppDispatch, RootState } from "../store";
 import UnauthorizedPage from "./UnauthorizedPage";
 import axios from "axios";
+import axiosInstance from "../utils/axios";
 
 interface UserInfo {
   id: string;
@@ -74,13 +75,13 @@ const DashboardPage: React.FC = () => {
 
         if (accessToken && refreshToken) {
           // Store tokens from Google login
-          localStorage.setItem('accessToken', accessToken);
-          localStorage.setItem('refreshToken', refreshToken);
+          // localStorage.setItem('accessToken', accessToken);
+          // localStorage.setItem('refreshToken', refreshToken);
           // Remove tokens from URL for security
           window.history.replaceState({}, document.title, window.location.pathname);
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+          console.log(axiosInstance.defaults.headers.common['Authorization']);
         }
-
-        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
         // Fetch user info using Redux thunk
         console.log('Fetching user info...');

@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { login } from "../store/slices/authSlice.ts";
 import type { AppDispatch, RootState } from "../store/index.ts";
 import type { AuthState } from "../store/slices/authSlice.ts";
+import axios from "axios";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -17,7 +18,11 @@ const LoginPage = () => {
     try {
       const result = await dispatch(login({ email, password })).unwrap();
       if (result.accessToken) {
-        navigate("/dashboard");
+        // set access token to authorization as bearer
+        // axios.defaults.headers.common['Authorization'] = `Bearer ${result.accessToken}`;
+        console.log("sending tokens to dashboard", result.accessToken);
+        
+        navigate(`/dashboard?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`);
       }
     } catch (err) {
       // Error is handled by Redux state
