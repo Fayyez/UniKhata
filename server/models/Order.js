@@ -22,6 +22,9 @@ const orderSchema = new mongoose.Schema({
     courier: { // courier id
         type: Number, ref: 'CourierIntegration' 
     },
+    isDeleted: { // order is deleted or not
+        type: Boolean, default: false 
+    },
     status: { // order status
         type: String, required: true 
     },
