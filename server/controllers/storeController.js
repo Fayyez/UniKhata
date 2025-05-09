@@ -1,68 +1,119 @@
 import Store from '../models/Store.js';
+import User from '../models/User.js';
 
+// GET /stores/ {uid?} : Returns all stores under a user or all stores in the database
+export const getAllStores = async (req, res) => {
+    try {
+        const uid = req.body?.uid; 
+        let stores;
+        if (uid) {
+            if (isNaN(uid)) {
+                return res.status(400).json({ message: 'Invalid uid' });
+            }
+            stores = await Store.find({ owner: uid, isDeleted: false });
+        } else {
+            stores = await Store.find({ isDeleted: false });
+        }
+        return res.status(200).json({ message: 'Stores fetched successfully', stores });
+    } catch (error) {
+        return res.status(500).json({ message: 'Error fetching stores', error: error.message });
+    }
+};
+
+// GET /stores/:sid : Returns the store with id = sid
+export const getStoreById = async (req, res) => {
+    try {
+        const sid = req.params.sid;
+        if (!sid || isNaN(sid)) {
+            return res.status(400).json({ message: 'Invalid store id' });
+        }
+        const store = await Store.findOne({ _id: sid, isDeleted: false });
+        if (!store) {
+            return res.status(404).json({ message: 'Store not found' });
+        }
+        return res.status(200).json({ message: 'Store fetched successfully', store });
+    } catch (error) {
+        return res.status(500).json({ message: 'Error fetching store', error: error.message });
+    }
+};
+
+// POST /stores/ : Create a new store
 export const createStore = async (req, res) => {
     try {
-        // this will be used inside a post request
-        const store = new Store(req.body); // create a new store object with the data from the request body
-        await store.save(); // save the store to the database
-        console.log("Store created: ", store._id); // log the store id to the console
-        return res.status(201).json({ message: "Store created successfully", store }); // return a success message and the store object
+        const { name, owner, eCommerceIntegrations, courierIntegrations } = req.body;
+        if (!name) {
+            return res.status(400).json({ message: 'Store name is required' });
+        }
+        if (!owner || isNaN(owner)) {
+            return res.status(400).json({ message: 'Valid owner id is required' });
+        }
+        // Optionally check if owner exists
+        const user = await User.findOne({ _id: owner, isDeleted: false });
+        if (!user) {
+            return res.status(404).json({ message: 'Owner user not found' });
+        }
+        const newStore = new Store({
+            name,
+            owner,
+            eCommerceIntegrations: eCommerceIntegrations || [],
+            courierIntegrations: courierIntegrations || [],
+        });
+        const savedStore = await newStore.save();
+        // Add store to user's stores array
+        user.stores.push(savedStore._id);
+        await user.save();
+        return res.status(201).json({ message: 'Store created successfully', store: savedStore });
     } catch (error) {
-        console.error("Error creating store: ", error); // log the error to the console
-        return res.status(500).json({ message: "Error creating store", error }); // return an error message and the error object
-    } 
+        return res.status(500).json({ message: 'Error creating store', error: error.message });
+    }
 };
 
-export const getStores = async (req, res) => {
-    const uid = req.body?.uid; // if body exists and there is key named uid in it, then define const uid
-    
-    if (!uid) {
-        // if uid is not provided, return all stores in the database
-        const stores = await Store.find({});
-        return res.status(200).json({ message: "Stores fetched successfully", stores });
-    }
-    // if uid is provided, return all stores under the user
-    const stores = await Store.find({ owner: uid }); // updated query to match 'owner' field with 'uid'
-    if (stores.length === 0) {
-        return res.status(404).json({ message: "No stores found for this user" });
-    }
-    return res.status(200).json({ message: "Stores fetched successfully", stores });
-};
-
-export const getStoreById = async (req, res) => {
-    // get the store id from the url
-    const storeId = req.params.sid; // get the store id from the url
-    // find the store in the database
-    const store = await Store.findById(storeId); // find the store in the database
-    if (!store) {
-        return res.status(404).json({ message: "Store not found" });
-    }
-    console.log("Store fetched: ", storeId);
-    console.log("Store: ", store);
-    return res.status(200).json({ message: "Store fetched successfully", store });
-};
-
+// PATCH /stores/:sid : Update a store
 export const updateStore = async (req, res) => {
-    // this will be used inside a patch request
-    const storeId = req.params.sid; // get the store id from the url
-    const store = await Store.findById(storeId); // find the store in the database
-    if (!store) {
-        return res.status(404).json({ message: "Store not found" });
+    try {
+        const sid = req.params.sid;
+        if (!sid || isNaN(sid)) {
+            return res.status(400).json({ message: 'Invalid store id' });
+        }
+        const updateData = req.body;
+        // Prevent updating _id
+        if (updateData._id) delete updateData._id;
+        const updatedStore = await Store.findOneAndUpdate(
+            { _id: sid, isDeleted: false },
+            updateData,
+            { new: true, runValidators: true }
+        );
+        if (!updatedStore) {
+            return res.status(404).json({ message: 'Store not found' });
+        }
+        return res.status(200).json({ message: 'Store updated successfully', store: updatedStore });
+    } catch (error) {
+        return res.status(500).json({ message: 'Error updating store', error: error.message });
     }
-    // update the store with the new data
-    const updatedStore = await Store.findByIdAndUpdate(storeId, req.body, { new: true });
-    return res.status(200).json({ message: "Store updated successfully", updatedStore });
 };
 
+// DELETE /stores/:sid : Soft delete a store
 export const deleteStore = async (req, res) => {
-    // this will be used inside a delete request
-    // set the isDeleted field to true
-    const storeId = req.params.sid; // get the store id from the url
-    const store = await Store.findById(storeId); // find the store in the database
-    if (!store) {
-        return res.status(404).json({ message: "Store not found" });
+    try {
+        const sid = req.params.sid;
+        if (!sid || isNaN(sid)) {
+            return res.status(400).json({ message: 'Invalid store id' });
+        }
+        const store = await Store.findOneAndUpdate(
+            { _id: sid, isDeleted: false },
+            { isDeleted: true },
+            { new: true }
+        );
+        if (!store) {
+            return res.status(404).json({ message: 'Store not found' });
+        }
+        // Remove store from user's stores array
+        await User.updateOne(
+            { _id: store.owner },
+            { $pull: { stores: store._id } }
+        );
+        return res.status(200).json({ message: 'Store deleted successfully', storeId: sid });
+    } catch (error) {
+        return res.status(500).json({ message: 'Error deleting store', error: error.message });
     }
-    // update the store with the new data
-    const updatedStore = await Store.findByIdAndUpdate(storeId, { isDeleted: true }, { new: true });
-    return res.status(200).json({ message: "Store deleted successfully", updatedStore });
 };

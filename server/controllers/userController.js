@@ -1,96 +1,118 @@
-// TODO: Implement user controller methods to handle user-related operations
-
-/**
- * Controller for managing user operations
- * This file will contain methods for handling various user functionalities
- */
-
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 
-/**
- * Get user profile information
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const getUserProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user._id).select('-password');
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        res.json(user);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching user profile', error: error.message });
+        const userId = req.user?._id;
+        if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+        const user = await User.findOne({ _id: userId, isDeleted: false }).select('-password');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.status(200).json(user);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
-/**
- * Update user profile information
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const updateUserProfile = async (req, res) => {
     try {
-        const { name, email } = req.body;
-        const user = await User.findByIdAndUpdate(
-            req.user._id,
-            { name, email },
+        const userId = req.user?._id;
+        if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+        const { name, email, avatar } = req.body;
+        // Check if email is being updated and is unique
+        if (email) {
+            const existing = await User.findOne({ email, _id: { $ne: userId } });
+            if (existing) return res.status(409).json({ message: 'Email already in use' });
+        }
+        const updated = await User.findOneAndUpdate(
+            { _id: userId, isDeleted: false },
+            { $set: { ...(name && { name }), ...(email && { email }), ...(avatar && { avatar }) } },
             { new: true }
         ).select('-password');
-        
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        
-        res.json(user);
-    } catch (error) {
-        res.status(500).json({ message: 'Error updating user profile', error: error.message });
+        if (!updated) return res.status(404).json({ message: 'User not found' });
+        res.status(200).json(updated);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
-/**
- * Change user password
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 export const changePassword = async (req, res) => {
     try {
-        const { currentPassword, newPassword } = req.body;
-        
-        // Get user with password
-        const user = await User.findById(req.user._id);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        
-        // Check current password
-        const isMatch = await bcrypt.compare(currentPassword, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Current password is incorrect' });
-        }
-        
-        // Hash new password
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(newPassword, salt);
+        const userId = req.user?._id;
+        if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+        const { oldPassword, newPassword } = req.body;
+        if (!oldPassword || !newPassword) return res.status(400).json({ message: 'Old and new password required' });
+        const user = await User.findOne({ _id: userId, isDeleted: false });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) return res.status(400).json({ message: 'Old password is incorrect' });
+        user.password = await bcrypt.hash(newPassword, 10);
         await user.save();
-        
-        res.json({ message: 'Password updated successfully' });
-    } catch (error) {
-        res.status(500).json({ message: 'Error changing password', error: error.message });
+        res.status(200).json({ message: 'Password updated successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
-/**
- * Delete user account
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
+export const changeAvatar = async (req, res) => {
+    try {
+        const userId = req.user?._id;
+        if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+        const { avatar } = req.body;
+        if (!avatar) return res.status(400).json({ message: 'Avatar is required' });
+        const user = await User.findOneAndUpdate(
+            { _id: userId, isDeleted: false },
+            { $set: { avatar } },
+            { new: true }
+        );
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.status(200).json(user);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
 export const deleteAccount = async (req, res) => {
     try {
-        // Implementation for account deletion (could be soft delete)
-        res.status(501).json({ message: "Not implemented yet" });
-    } catch (error) {
-        res.status(500).json({ message: 'Error deleting account', error: error.message });
+        const userId = req.user?._id;
+        if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+        const user = await User.findOneAndUpdate(
+            { _id: userId, isDeleted: false },
+            { $set: { isDeleted: true } },
+            { new: true }
+        );
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.status(200).json({ message: 'Account deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+export const getUserProfileById = async (req, res) => {
+    try {
+        const { uid } = req.params;
+        if (!uid) return res.status(400).json({ message: 'User ID required' });
+        const user = await User.findOne({ _id: uid, isDeleted: false }).select('-password');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.status(200).json(user);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+export const createUser = async (req, res) => {
+    try {
+        const { name, email, password, avatar, googleId } = req.body;
+        if (!email || !password || !name) return res.status(400).json({ message: 'Name, email, and password are required' });
+        const existing = await User.findOne({ email });
+        if (existing) return res.status(409).json({ message: 'Email already in use' });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = new User({ name, email, password: hashedPassword, avatar, googleId });
+        await user.save();
+        const userObj = user.toObject();
+        delete userObj.password;
+        res.status(201).json(userObj);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
     }
 };
