@@ -1,7 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:4000/api/auth';
+import axiosInstance from '../../utils/axios';
 
 export interface AuthState {
   user: any | null;
@@ -36,12 +34,11 @@ const initialState: AuthState = {
   error: null
 };
 
-// Async thunks
 export const login = createAsyncThunk<AuthResponse, LoginCredentials, { rejectValue: ErrorResponse }>(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/login`, {
+      const response = await axiosInstance.post('/auth/login', {
         email: credentials.email.toLowerCase(),
         password: credentials.password
       });
@@ -66,7 +63,7 @@ export const register = createAsyncThunk<AuthResponse, any, { rejectValue: Error
   'auth/register',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/register`, userData);
+      const response = await axiosInstance.post('/auth/register', userData);
       localStorage.setItem('accessToken', response.data.accessToken);
       localStorage.setItem('refreshToken', response.data.refreshToken);
       return response.data;
@@ -83,7 +80,7 @@ export const refreshToken = createAsyncThunk<AuthResponse, void, { rejectValue: 
   async (_, { rejectWithValue }) => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
-      const response = await axios.post(`${API_URL}/refresh`, { refreshToken });
+      const response = await axiosInstance.post('/auth/refresh', { refreshToken });
       localStorage.setItem('accessToken', response.data.accessToken);
       return response.data;
     } catch (error: any) {
@@ -98,12 +95,8 @@ export const getUserInfo = createAsyncThunk<any, void, { rejectValue: ErrorRespo
   'auth/getUserInfo',
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      console.log('Getting user info with token:', token);
-      
-      const response = await axios.get(`${API_URL}/user-info`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      console.log('Getting user info...');
+      const response = await axiosInstance.get('/auth/user-info');
       console.log('User info response:', response.data);
       return response.data;
     } catch (error: any) {

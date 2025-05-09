@@ -1,26 +1,31 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
-
-interface UserProfile {
-  name: string;
-  email: string;
-  phone?: string;
-  image?: string;
-}
+import { fetchUserProfile, updateUserProfile } from '../store/slices/userSlice';
+import type { AppDispatch, RootState } from '../store';
+import type { UserProfile } from '../store/slices/userSlice';
 
 const ProfilePage: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   
-  const [profile, setProfile] = useState<UserProfile>({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 234 567 8900'
-  });
+  const { profile, loading, error } = useSelector((state: RootState) => state.user);
+  const [tempProfile, setTempProfile] = useState<Partial<UserProfile>>({});
 
-  const [tempProfile, setTempProfile] = useState<UserProfile>(profile);
+  useEffect(() => {
+    dispatch(fetchUserProfile());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (profile) {
+      setTempProfile(profile);
+    }
+  }, [profile]);
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -33,28 +38,77 @@ const ProfilePage: React.FC = () => {
       reader.onloadend = () => {
         setTempProfile(prev => ({
           ...prev,
-          image: reader.result as string
+          avatar: reader.result as string
         }));
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSave = () => {
-    setProfile(tempProfile);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      await dispatch(updateUserProfile({
+        name: tempProfile.name,
+        avatar: tempProfile.avatar
+      })).unwrap();
+      setIsEditing(false);
+    } catch (err) {
+      // Error is handled by Redux state
+    }
   };
 
   const handleCancel = () => {
-    setTempProfile(profile);
+    setTempProfile(profile || {});
     setIsEditing(false);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f8f9fa] dark:bg-gray-900">
+        <Navbar 
+          userName="Loading..."
+          onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+        />
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-xl">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#f8f9fa] dark:bg-gray-900">
+        <Navbar 
+          userName="Error"
+          onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+        />
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-red-500">{error}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-[#f8f9fa] dark:bg-gray-900">
+        <Navbar 
+          userName="Profile Not Found"
+          onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+        />
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-xl">Profile not found</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-gray-900">
       <Navbar 
         userName={profile.name}
-        userImage={profile.image}
+        userImage={profile.avatar}
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
       />
       <div className="flex">
@@ -84,15 +138,15 @@ const ProfilePage: React.FC = () => {
                     onClick={isEditing ? handleImageClick : undefined}
                   >
                     <div className="h-32 w-32 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 border-4 border-white dark:border-gray-800 ring-1 ring-gray-200 dark:ring-gray-700">
-                      {tempProfile.image ? (
+                      {tempProfile.avatar ? (
                         <img
-                          src={tempProfile.image}
+                          src={tempProfile.avatar}
                           alt={tempProfile.name}
                           className="h-full w-full object-cover"
                         />
                       ) : (
                         <div className="h-full w-full flex items-center justify-center bg-[#1a73e8] text-white text-3xl font-medium">
-                          {tempProfile.name.charAt(0).toUpperCase()}
+                          {tempProfile.name?.charAt(0).toUpperCase()}
                         </div>
                       )}
                     </div>
@@ -122,7 +176,7 @@ const ProfilePage: React.FC = () => {
                     {isEditing ? (
                       <input
                         type="text"
-                        value={tempProfile.name}
+                        value={tempProfile.name || ''}
                         onChange={(e) => setTempProfile(prev => ({ ...prev, name: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a73e8] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       />
@@ -135,32 +189,25 @@ const ProfilePage: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Email Address
                     </label>
-                    {isEditing ? (
-                      <input
-                        type="email"
-                        value={tempProfile.email}
-                        onChange={(e) => setTempProfile(prev => ({ ...prev, email: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a73e8] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      />
-                    ) : (
-                      <p className="text-gray-900 dark:text-white py-2">{profile.email}</p>
-                    )}
+                    <p className="text-gray-900 dark:text-white py-2">{profile.email}</p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Phone Number
+                      Google ID
                     </label>
-                    {isEditing ? (
-                      <input
-                        type="tel"
-                        value={tempProfile.phone || ''}
-                        onChange={(e) => setTempProfile(prev => ({ ...prev, phone: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a73e8] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      />
-                    ) : (
-                      <p className="text-gray-900 dark:text-white py-2">{profile.phone || 'Not provided'}</p>
-                    )}
+                    <p className="text-gray-900 dark:text-white py-2">{profile.googleId || 'Not connected'}</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Stores
+                    </label>
+                    <p className="text-gray-900 dark:text-white py-2">
+                      {profile.stores.length > 0 
+                        ? `${profile.stores.length} store(s)` 
+                        : 'No stores yet'}
+                    </p>
                   </div>
 
                   {isEditing && (

@@ -90,6 +90,7 @@ router.get(
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
     // TODO: fetch user data from database instead of directly sending
+    console.log("user-info", req.user);
     res.json({
         id: req.user._id,
         email: req.user.email,

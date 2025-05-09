@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 interface NavbarProps {
-  userName: string;
+  userName?: string;
   userEmail?: string;
   userImage?: string;
   onMenuClick?: () => void;
@@ -60,13 +60,13 @@ const Navbar: React.FC<NavbarProps> = ({ userName, userEmail, userImage, onMenuC
                   {userImage ? (
                     <img
                       src={userImage}
-                      alt={userName}
+                      alt={userName || 'User'}
                       className="h-full w-full object-cover"
                     />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center">
                       <span className="text-gray-500 dark:text-gray-300 text-sm">
-                        {userName.charAt(0).toUpperCase()}
+                        {userName ? userName.charAt(0).toUpperCase() : '?'}
                       </span>
                     </div>
                   )}

@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getUserInfo } from "../store/slices/authSlice";
 import type { AppDispatch, RootState } from "../store";
 import UnauthorizedPage from "./UnauthorizedPage";
+import axios from "axios";
 
 interface UserInfo {
   id: string;
@@ -77,27 +78,12 @@ const DashboardPage: React.FC = () => {
           localStorage.setItem('refreshToken', refreshToken);
           // Remove tokens from URL for security
           window.history.replaceState({}, document.title, window.location.pathname);
-          
-          // Fetch user info using Redux thunk
-          console.log('Fetching user info with URL tokens...');
-          const result = await dispatch(getUserInfo()).unwrap();
-          console.log('User info result:', result);
-          setIsAuthorized(true);
-          return;
         }
 
-        // If no tokens in URL, check localStorage
-        const storedAccessToken = localStorage.getItem('accessToken');
-        console.log('Stored access token:', storedAccessToken);
-
-        if (!storedAccessToken) {
-          console.log('No stored token found');
-          setIsAuthorized(false);
-          return;
-        }
+        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
         // Fetch user info using Redux thunk
-        console.log('Fetching user info with stored token...');
+        console.log('Fetching user info...');
         const result = await dispatch(getUserInfo()).unwrap();
         console.log('User info result:', result);
         setIsAuthorized(true);
@@ -111,7 +97,7 @@ const DashboardPage: React.FC = () => {
     };
 
     initializeAuth();
-  }, [dispatch, location, navigate]);
+  }, [dispatch, location]);
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
