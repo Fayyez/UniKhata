@@ -23,7 +23,7 @@ export const getAllStores = async (req, res) => {
 // GET /stores/:sid : Returns the store with id = sid
 export const getStoreById = async (req, res) => {
     try {
-        const sid = req.params.sid;
+        const sid = Number(req.params.sid);
         if (!sid || isNaN(sid)) {
             return res.status(400).json({ message: 'Invalid store id' });
         }
@@ -40,18 +40,24 @@ export const getStoreById = async (req, res) => {
 // POST /stores/ : Create a new store
 export const createStore = async (req, res) => {
     try {
+        console.log('Creating store:', req.body);
         const { name, owner, eCommerceIntegrations, courierIntegrations } = req.body;
+        console.log('Name:', name);
         if (!name) {
             return res.status(400).json({ message: 'Store name is required' });
         }
+        console.log('Name:', name);
         if (!owner || isNaN(owner)) {
             return res.status(400).json({ message: 'Valid owner id is required' });
         }
+        console.log('Owner:', owner);
         // Optionally check if owner exists
+        console.log('Owner:', owner);
         const user = await User.findOne({ _id: owner, isDeleted: false });
         if (!user) {
             return res.status(404).json({ message: 'Owner user not found' });
         }
+        console.log('User found:', user);
         const newStore = new Store({
             name,
             owner,
@@ -71,7 +77,7 @@ export const createStore = async (req, res) => {
 // PATCH /stores/:sid : Update a store
 export const updateStore = async (req, res) => {
     try {
-        const sid = req.params.sid;
+        const sid = Number(req.params.sid);
         if (!sid || isNaN(sid)) {
             return res.status(400).json({ message: 'Invalid store id' });
         }
@@ -95,7 +101,7 @@ export const updateStore = async (req, res) => {
 // DELETE /stores/:sid : Soft delete a store
 export const deleteStore = async (req, res) => {
     try {
-        const sid = req.params.sid;
+        const sid = Number(req.params.sid);
         if (!sid || isNaN(sid)) {
             return res.status(400).json({ message: 'Invalid store id' });
         }

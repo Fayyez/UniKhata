@@ -1,12 +1,34 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState, AppDispatch } from '../store';
+import { fetchStores } from '../store/slices/storeSlice';
 
 interface SidebarProps {
   isOpen?: boolean;
 }
 
+interface Store {
+  _id: number;
+  name: string;
+  owner: number;
+  eCommerceIntegrations?: number[];
+  courierIntegrations?: number[];
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
   const location = useLocation();
+  const dispatch = useDispatch<AppDispatch>();
+  const { stores } = useSelector((state: RootState) => state.store);
+
+  useEffect(() => {
+    if (stores.length === 0) {
+      dispatch(fetchStores());
+    }
+  }, [dispatch, stores.length]);
 
   const menuItems = [
     {
@@ -20,12 +42,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
     }
   ];
 
-  const enrolledStores = [
-    { id: '1', name: 'Main Store', shortName: 'MS', color: 'bg-[#1a73e8]' },
-    { id: '2', name: 'Branch Store', shortName: 'BS', color: 'bg-[#1e8e3e]' },
-    { id: '3', name: 'Downtown Store', shortName: 'DS', color: 'bg-[#d93025]' }
-  ];
-
   const defaultColors = [
     'bg-[#1967d2]', // Blue
     'bg-[#1e8e3e]', // Green
@@ -33,6 +49,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
     'bg-[#e37400]', // Orange
     'bg-[#9334e6]', // Purple
   ];
+
+  // Function to get store initials
+  const getStoreInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   return (
     <div 
@@ -58,21 +84,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
           ))}
         </div>
 
-        <div className="mt-6">
+        <div className="mt-8">
           <div className="text-xs font-medium text-gray-500 dark:text-gray-400 px-4 mb-2">My Stores</div>
           <div className="space-y-1">
-            {enrolledStores.map((store, idx) => (
+            {stores.map((store, idx) => (
               <Link
-                key={store.id}
-                to={`/store/${store.id}`}
+                key={store._id}
+                to={`/store/${store._id}`}
                 className={`flex items-center space-x-3 px-4 py-2 text-sm rounded-full ${
-                  location.pathname === `/store/${store.id}`
+                  location.pathname === `/store/${store._id}`
                     ? 'bg-[#1a73e8]/10 dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#1a73e8]'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm ${store.color || defaultColors[idx % defaultColors.length]}`}>
-                  {store.shortName}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm ${defaultColors[idx % defaultColors.length]}`}>
+                  {getStoreInitials(store.name)}
                 </div>
                 <span>{store.name}</span>
               </Link>

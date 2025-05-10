@@ -58,17 +58,15 @@ passport.use(new LocalStrategy({
             // if user not found
             if (!user) {
                 console.log("user not found by local strategy");
-                
+
                 return done(null, false, { message: 'user not found' });
             }
-            // match encrypted password
-            console.log(password, user.password);
-            
+
             const isMatch = password === user.password;
             // if password doesnt match
             if (!isMatch) {
                 console.log(" invalid cred by local strategy");
-                
+
                 return done(null, false, { message: 'Invalid credentials' });
             }
             // return user
@@ -88,6 +86,7 @@ const options = {
 passport.use(new JWTStrategy.Strategy(options, async (jwtPayload, done) => {
     try {
         const user = await User.findById(jwtPayload.id);
+
         if (user) {
             return done(null, user);
         }

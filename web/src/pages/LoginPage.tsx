@@ -1,30 +1,28 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "../store/slices/authSlice.ts";
+import type { AppDispatch, RootState } from "../store/index.ts";
+import type { AuthState } from "../store/slices/authSlice.ts";
 import axios from "axios";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const { loading, error } = useSelector((state: RootState) => state.auth as AuthState);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:4000/api/auth/login",
-        { email, password }
-      );
-
-      const { accessToken, refreshToken } = response.data;
-
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-
-      navigate("/dashboard");
+      const result = await dispatch(login({ email, password })).unwrap();
+      if (result.tokens.accessToken) {
+        console.log("sending tokens to dashboard", result.tokens.accessToken);
+        navigate(`/dashboard?accessToken=${result.tokens.accessToken}&refreshToken=${result.tokens.refreshToken}`);
+      }
     } catch (err) {
-      setError("Invalid credentials");
+      // Error is handled by Redux state
     }
   };
 
@@ -59,9 +57,10 @@ const LoginPage = () => {
           />
           <button
             type="submit"
-            className="bg-[#1a73e8] text-white rounded-lg py-2 hover:bg-[#1967d2] transition"
+            disabled={loading}
+            className="bg-[#1a73e8] text-white rounded-lg py-2 hover:bg-[#1967d2] transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
