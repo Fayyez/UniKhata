@@ -1,191 +1,239 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProducts, createProduct, deleteProduct, updateProduct } from '../store/slices/productSlice';
+import type { RootState, AppDispatch } from '../store';
+import type { Product } from '../store/slices/productSlice';
 
-const ProductsTab: React.FC = () => {
-  // Mock product data
-  const initialProducts = [
-    { id: 'PRD-001', name: 'Apple iPhone 15', category: 'Smartphones', stock: 12, price: '$999', status: 'Active' },
-    { id: 'PRD-002', name: 'Samsung Galaxy S23', category: 'Smartphones', stock: 0, price: '$899', status: 'Active' },
-    { id: 'PRD-003', name: 'Sony WH-1000XM5', category: 'Headphones', stock: 5, price: '$349', status: 'Active' },
-    { id: 'PRD-004', name: 'Apple MacBook Pro', category: 'Laptops', stock: 2, price: '$1999', status: 'Non Active' },
-    { id: 'PRD-005', name: 'Dell XPS 13', category: 'Laptops', stock: 8, price: '$1299', status: 'Active' },
-  ];
+interface ProductsTabProps {
+  storeId: string | undefined;
+  userId: number | undefined;
+}
 
-  const [products, setProducts] = useState(initialProducts);
-  const [search, setSearch] = useState('');
-  const [editingProduct, setEditingProduct] = useState<any | null>(null);
-  const [editForm, setEditForm] = useState<any>({});
+const ProductsTab: React.FC<ProductsTabProps> = ({ storeId, userId }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { products, loading, error } = useSelector((state: RootState) => state.product);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState<Partial<Product>>({
+    name: '',
+    description: '',
+    price: 0,
+    stockAmount: 0,
+    brand: '',
+    image: '',
+  });
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
 
-  const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    if (storeId) {
+      dispatch(fetchProducts(storeId));
+    }
+  }, [dispatch, storeId]);
 
-  const openEdit = (product: any) => {
-    setEditingProduct(product);
-    setEditForm({ ...product });
+  const handleModalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!storeId || !userId) return;
+    setModalLoading(true);
+    setModalError(null);
+    try {
+      if (isEditing && currentProduct._id) {
+        await dispatch(updateProduct({ 
+          storeId, 
+          productId: currentProduct._id, 
+          data: { ...currentProduct, addedBy: userId } 
+        })).unwrap();
+      } else {
+        await dispatch(createProduct({ 
+          storeId, 
+          data: { ...currentProduct, addedBy: userId } 
+        })).unwrap();
+      }
+      setIsModalOpen(false);
+      resetModal();
+    } catch (err: any) {
+      setModalError(err || `Failed to ${isEditing ? 'update' : 'add'} product`);
+    } finally {
+      setModalLoading(false);
+    }
   };
 
-  const closeEdit = () => {
-    setEditingProduct(null);
-    setEditForm({});
+  const handleEditClick = (product: Product) => {
+    setCurrentProduct(product);
+    setIsEditing(true);
+    setIsModalOpen(true);
   };
 
-  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  const handleAddClick = () => {
+    resetModal();
+    setIsEditing(false);
+    setIsModalOpen(true);
   };
 
-  const saveEdit = () => {
-    setProducts(products.map(p => p.id === editingProduct.id ? { ...editForm } : p));
-    closeEdit();
+  const resetModal = () => {
+    setCurrentProduct({
+      name: '',
+      description: '',
+      price: 0,
+      stockAmount: 0,
+      brand: '',
+      image: '',
+    });
+    setModalError(null);
   };
 
-  // Calculate status for display
-  const getStatus = (product: any) => {
-    if (product.status !== 'Active') return 'Non Active';
-    if (Number(product.stock) === 0) return 'Out of Stock';
-    if (Number(product.stock) > 0 && Number(product.stock) <= 5) return 'Low Stock';
-    return 'Active';
+  const handleDeleteProduct = async (productId: string) => {
+    setDeleteLoading(productId);
+    try {
+      await dispatch(deleteProduct({ pid: productId })).unwrap();
+    } catch (err: any) {
+      console.error('Failed to delete product:', err);
+    } finally {
+      setDeleteLoading(null);
+    }
   };
 
-  // Badge color
-  const getStatusBadge = (status: string) => {
-    if (status === 'Active') return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-    if (status === 'Low Stock') return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-    if (status === 'Out of Stock') return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-    return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200';
-  };
+  if (loading) return <div>Loading products...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
-    <>
-      {/* Search Bar */}
-      <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-        <input
-          type="text"
-          placeholder="Search products..."
-          className="w-full sm:w-64 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-[#1a73e8] focus:border-[#1a73e8] bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+    <div className="overflow-x-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Products</h2>
+        <button
+          className="px-4 py-2 bg-[#1a73e8] text-white rounded hover:bg-[#1557b0]"
+          onClick={handleAddClick}
+        >
+          Add Product
+        </button>
       </div>
-      {/* Products Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead>
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product ID</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stock</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Price</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-              <th className="px-4 py-2"></th>
+      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead>
+          <tr>
+            <th className="px-4 py-2 text-gray-900 dark:text-white">ID</th>
+            <th className="px-4 py-2 text-gray-900 dark:text-white">Name</th>
+            <th className="px-4 py-2 text-gray-900 dark:text-white">Brand</th>
+            <th className="px-4 py-2 text-gray-900 dark:text-white">Stock</th>
+            <th className="px-4 py-2 text-gray-900 dark:text-white">Price</th>
+            <th className="px-4 py-2 text-gray-900 dark:text-white">Description</th>
+            <th className="px-4 py-2 text-gray-900 dark:text-white">Created At</th>
+            <th className="px-4 py-2 text-gray-900 dark:text-white">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {products.map(product => (
+            <tr key={product._id.toString()}>
+              <td className="px-4 py-2 text-gray-900 dark:text-white">{product._id}</td>
+              <td className="px-4 py-2 text-gray-900 dark:text-white">{product.name}</td>
+              <td className="px-4 py-2 text-gray-900 dark:text-white">{product.brand}</td>
+              <td className="px-4 py-2 text-gray-900 dark:text-white">{product.stockAmount}</td>
+              <td className="px-4 py-2 text-gray-900 dark:text-white">{product.price}</td>
+              <td className="px-4 py-2 text-gray-900 dark:text-white">{product.description}</td>
+              <td className="px-4 py-2 text-gray-900 dark:text-white">{new Date(product.createdAt).toLocaleDateString()}</td>
+              <td className="px-4 py-2">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEditClick(product)}
+                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteProduct(product._id)}
+                    disabled={deleteLoading === product._id}
+                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+                  >
+                    {deleteLoading === product._id ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {filteredProducts.map((product) => {
-              const status = getStatus(product);
-              return (
-                <tr key={product.id}>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">{product.id}</td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">{product.name}</td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{product.category}</td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">{product.stock}</td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">{product.price}</td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadge(status)}`}>
-                      {status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-sm">
-                    <button
-                      className="px-3 py-1 bg-[#1a73e8] text-white rounded hover:bg-[#1761c7] transition"
-                      onClick={() => openEdit(product)}
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      {/* Edit Product Modal */}
-      {editingProduct && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-40">
+          ))}
+        </tbody>
+      </table>
+      {/* Product Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-2">
-            <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Edit Product</h2>
-            <div className="space-y-3">
+            <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+              {isEditing ? 'Edit Product' : 'Add Product'}
+            </h2>
+            <form onSubmit={handleModalSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Name</label>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Name</label>
                 <input
-                  name="name"
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  value={editForm.name}
-                  onChange={handleEditChange}
+                  className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  value={currentProduct.name}
+                  onChange={e => setCurrentProduct(p => ({ ...p, name: e.target.value }))}
+                  required
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Category</label>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Brand</label>
                 <input
-                  name="category"
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  value={editForm.category}
-                  onChange={handleEditChange}
+                  className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  value={currentProduct.brand}
+                  onChange={e => setCurrentProduct(p => ({ ...p, brand: e.target.value }))}
+                  required
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Stock</label>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Stock</label>
                 <input
-                  name="stock"
                   type="number"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  value={editForm.stock}
-                  onChange={handleEditChange}
+                  className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  value={currentProduct.stockAmount}
+                  onChange={e => setCurrentProduct(p => ({ ...p, stockAmount: Number(e.target.value) }))}
+                  required
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Price</label>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Price</label>
                 <input
-                  name="price"
-                  type="text"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  value={editForm.price}
-                  onChange={handleEditChange}
+                  type="number"
+                  className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  value={currentProduct.price}
+                  onChange={e => setCurrentProduct(p => ({ ...p, price: Number(e.target.value) }))}
+                  required
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Status</label>
-                <select
-                  name="status"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  value={editForm.status}
-                  onChange={handleEditChange}
-                >
-                  <option value="Active">Active</option>
-                  <option value="Non Active">Non Active</option>
-                </select>
+                <label className="block text-sm font-medium mb-1 text-gray-900 dark:text-white">Description</label>
+                <textarea
+                  className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  value={currentProduct.description}
+                  onChange={e => setCurrentProduct(p => ({ ...p, description: e.target.value }))}
+                />
               </div>
-            </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
-                onClick={closeEdit}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 rounded bg-[#1a73e8] text-white hover:bg-[#1761c7]"
-                onClick={saveEdit}
-              >
-                Save
-              </button>
-            </div>
+              {modalError && <div className="text-red-500 text-sm">{modalError}</div>}
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    resetModal();
+                  }}
+                  disabled={modalLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded bg-[#1a73e8] text-white hover:bg-[#1761c7]"
+                  disabled={modalLoading}
+                >
+                  {modalLoading ? (isEditing ? 'Updating...' : 'Adding...') : (isEditing ? 'Update Product' : 'Add Product')}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

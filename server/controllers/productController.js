@@ -63,9 +63,11 @@ export const getProductById = async (req, res) => {
 
 export const createProduct = async (req, res) => {
     const newProduct = req.body;
+    console.log("newProduct", newProduct);
     const product = new Product(newProduct); // create a new product object with the provided data
+    console.log("newProduct", newProduct);
     
-    if (!newProduct.name || !newProduct.price || isNaN(newProduct.price) || newProduct.price < 0) {
+    if (!newProduct.name || newProduct.price == null || isNaN(newProduct.price) || newProduct.price < 0) {
         return res.status(400).json({ message: "Invalid product data" });
     }
     
@@ -96,6 +98,7 @@ export const updateProduct = async (req, res) => {
 
 export const deleteProduct = async (req, res) => {
     const productId = req.params.pid; // get the product id from the url
+    console.log("productId", productId);
     try {
         const product = await Product.findByIdAndUpdate(productId, { isDeleted: true }, { new: true }); // soft delete the product in the database
         if (!product) {
