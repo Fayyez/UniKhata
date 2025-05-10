@@ -10,7 +10,7 @@ const productEntrySchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema({
     _id: { // order id
-        type: Number, unique: true 
+        type: Number, unique: true
     },
     productEntries: [productEntrySchema], // entries of products in the order
     store: { // store id
@@ -26,7 +26,7 @@ const orderSchema = new mongoose.Schema({
         type: Boolean, default: false 
     },
     status: { // order status
-        type: String, required: true 
+        type: String, required: true, enum: ['pending', 'dispatched', 'delivered', 'cancelled']
     },
 }, { timestamps: true } // adds operational timestamps to the schema
 );
