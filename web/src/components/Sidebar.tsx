@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../store';
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState, AppDispatch } from '../store';
+import { fetchStores } from '../store/slices/storeSlice';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -20,7 +21,14 @@ interface Store {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
   const location = useLocation();
+  const dispatch = useDispatch<AppDispatch>();
   const { stores } = useSelector((state: RootState) => state.store);
+
+  useEffect(() => {
+    if (stores.length === 0) {
+      dispatch(fetchStores());
+    }
+  }, [dispatch, stores.length]);
 
   const menuItems = [
     {

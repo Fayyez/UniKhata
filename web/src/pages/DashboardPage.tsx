@@ -68,9 +68,6 @@ const DashboardPage: React.FC = () => {
         const result = await dispatch(getUserInfo()).unwrap();
         console.log('User info result:', result);
         setIsAuthorized(true);
-
-        // Fetch stores after successful authentication
-        await dispatch(fetchStores()).unwrap();
       } catch (err) {
         console.error('Auth error:', err);
         setIsAuthorized(false);

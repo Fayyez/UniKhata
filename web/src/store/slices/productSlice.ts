@@ -6,14 +6,27 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  quantity: number;
-  category: string;
+  stockAmount: number;
+  brand: string;
   image?: string;
-  store: string;
+  store: number;
+  addedBy: number;
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+export const ProductDefaults: Omit<Product, '_id' | 'createdAt' | 'updatedAt'> = {
+  name: '',
+  description: '',
+  price: 0,
+  stockAmount: 0,
+  brand: '',
+  image: '',
+  store: 0,
+  addedBy: 0,
+  isDeleted: false
+};
 
 interface ProductState {
   products: Product[];
@@ -33,8 +46,13 @@ export const fetchProducts = createAsyncThunk<Product[], string, { rejectValue: 
   'product/fetchProducts',
   async (storeId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/api/stores/${storeId}/products`);
-      return response.data;
+      const response = await axiosInstance.request({
+        url: '/products/',
+        method: 'get',
+        data: { sid: Number(storeId) }
+      });
+      console.log("nnnnn", response.data);
+      return response.data.products;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch products');
     }
@@ -45,7 +63,7 @@ export const fetchProductById = createAsyncThunk<Product, { storeId: string; pro
   'product/fetchProductById',
   async ({ storeId, productId }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/api/stores/${storeId}/products/${productId}`);
+      const response = await axiosInstance.get(`/products/${productId}`);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch product');
@@ -57,9 +75,23 @@ export const createProduct = createAsyncThunk<Product, { storeId: string; data: 
   'product/createProduct',
   async ({ storeId, data }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post(`/api/stores/${storeId}/products`, data);
-      return response.data;
+      // Ensure required fields are present and properly formatted
+      const productData = {
+        ...data,
+        store: Number(storeId),
+        price: Number(data.price),
+        stockAmount: Number(data.stockAmount || 0),
+        name: data.name?.trim(),
+        description: data.description?.trim() || '',
+        brand: data.brand?.trim() || '',
+        image: data.image?.trim() || '',
+        isDeleted: false
+      };
+
+      const response = await axiosInstance.post(`/products/`, productData);
+      return response.data.product; // The backend returns { message, product }
     } catch (error: any) {
+      console.error('Create product error:', error.response?.data);
       return rejectWithValue(error.response?.data?.message || 'Failed to create product');
     }
   }
@@ -69,20 +101,33 @@ export const updateProduct = createAsyncThunk<Product, { storeId: string; produc
   'product/updateProduct',
   async ({ storeId, productId, data }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.put(`/api/stores/${storeId}/products/${productId}`, data);
-      return response.data;
+      // Ensure required fields are present and properly formatted
+      const productData = {
+        ...data,
+        store: Number(storeId),
+        price: Number(data.price),
+        stockAmount: Number(data.stockAmount || 0),
+        name: data.name?.trim(),
+        description: data.description?.trim() || '',
+        brand: data.brand?.trim() || '',
+        image: data.image?.trim() || '',
+      };
+
+      const response = await axiosInstance.patch(`/products/${productId}`, productData);
+      return response.data.product; // The backend returns { message, product }
     } catch (error: any) {
+      console.error('Update product error:', error.response?.data);
       return rejectWithValue(error.response?.data?.message || 'Failed to update product');
     }
   }
 );
 
-export const deleteProduct = createAsyncThunk<{ storeId: string; productId: string }, { storeId: string; productId: string }, { rejectValue: string }>(
+export const deleteProduct = createAsyncThunk<{ pid: string }, { pid: string }, { rejectValue: string }>(
   'product/deleteProduct',
-  async ({ storeId, productId }, { rejectWithValue }) => {
+  async ({ pid }, { rejectWithValue }) => {
     try {
-      await axiosInstance.delete(`/api/stores/${storeId}/products/${productId}`);
-      return { storeId, productId };
+      await axiosInstance.delete(`/products/${pid}`);
+      return { pid };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete product');
     }
@@ -165,10 +210,10 @@ const productSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteProduct.fulfilled, (state, action: PayloadAction<{ storeId: string; productId: string }>) => {
+      .addCase(deleteProduct.fulfilled, (state, action: PayloadAction<{ pid: string }>) => {
         state.loading = false;
-        state.products = state.products.filter(product => product._id !== action.payload.productId);
-        if (state.currentProduct?._id === action.payload.productId) {
+        state.products = state.products.filter(product => product._id !== action.payload.pid);
+        if (state.currentProduct?._id === action.payload.pid) {
           state.currentProduct = null;
         }
       })
