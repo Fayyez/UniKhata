@@ -22,7 +22,13 @@ interface UserState {
 
 interface UpdateProfileData {
   name?: string;
+  email?: string;
   avatar?: string;
+}
+
+interface ChangePasswordData {
+  oldPassword: string;
+  newPassword: string;
 }
 
 const initialState: UserState = {
@@ -36,6 +42,9 @@ export const fetchUserProfile = createAsyncThunk<UserProfile, void, { rejectValu
   async (_, { dispatch, rejectWithValue }) => {
     try {
       console.log('Fetching user profile...');
+      const accessToken = localStorage.getItem('accessToken');
+      console.log('Current access token:', accessToken);
+      
       const response = await axiosInstance.get('/auth/user-info');
       console.log('Profile fetch response:', response.data);
       return response.data;
@@ -45,6 +54,16 @@ export const fetchUserProfile = createAsyncThunk<UserProfile, void, { rejectValu
         response: error.response?.data,
         status: error.response?.status
       });
+      
+      if (error.response?.status === 401) {
+        try {
+          await dispatch(refreshToken());
+          const retryResponse = await axiosInstance.get('/auth/user-info');
+          return retryResponse.data;
+        } catch (refreshError) {
+          return rejectWithValue('Session expired. Please login again.');
+        }
+      }
       
       return rejectWithValue(
         error.response?.data?.message || 
@@ -57,15 +76,74 @@ export const fetchUserProfile = createAsyncThunk<UserProfile, void, { rejectValu
 
 export const updateUserProfile = createAsyncThunk<UserProfile, UpdateProfileData, { rejectValue: string }>(
   'user/updateProfile',
-  async (data, { rejectWithValue }) => {
+  async (data, { dispatch, rejectWithValue }) => {
     try {
-      const response = await axiosInstance.patch('/auth/profile', data);
+      console.log('Updating user profile with data:', data);
+      const accessToken = localStorage.getItem('accessToken');
+      console.log('Current access token:', accessToken);
+      
+      const response = await axiosInstance.patch('/users', data);
+      console.log('Profile update response:', response.data);
       return response.data;
     } catch (error: any) {
+      console.error('Profile update error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.config?.headers
+      });
+
+      if (error.response?.status === 401) {
+        try {
+          await dispatch(refreshToken());
+          const retryResponse = await axiosInstance.patch('/users', data);
+          return retryResponse.data;
+        } catch (refreshError) {
+          return rejectWithValue('Session expired. Please login again.');
+        }
+      }
+
       return rejectWithValue(
         error.response?.data?.message || 
         error.message || 
         'Failed to update profile'
+      );
+    }
+  }
+);
+
+export const changePassword = createAsyncThunk<void, ChangePasswordData, { rejectValue: string }>(
+  'user/changePassword',
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      console.log('Changing password...');
+      const accessToken = localStorage.getItem('accessToken');
+      console.log('Current access token:', accessToken);
+      
+      const response = await axiosInstance.post('/users/change-password', data);
+      console.log('Password change response:', response.data);
+    } catch (error: any) {
+      console.error('Password change error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.config?.headers
+      });
+
+      if (error.response?.status === 401) {
+        try {
+          await dispatch(refreshToken());
+          await axiosInstance.post('/users/change-password', data);
+          return;
+        } catch (refreshError) {
+          return rejectWithValue('Session expired. Please login again.');
+        }
+      }
+
+      return rejectWithValue(
+        error.response?.data?.message || 
+        error.message || 
+        'Failed to change password'
       );
     }
   }
@@ -106,6 +184,18 @@ const userSlice = createSlice({
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to update profile';
+      })
+      // Change Password
+      .addCase(changePassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to change password';
       });
   }
 });

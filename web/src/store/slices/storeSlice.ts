@@ -1,129 +1,96 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axiosInstance from '../../utils/axios';
 
-const API_URL = 'http://localhost:4000/api/stores';
+interface Store {
+  _id: number;
+  name: string;
+  owner: number;
+  eCommerceIntegrations?: number[];
+  courierIntegrations?: number[];
+  isDeleted?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
-export interface StoreState {
+interface StoreState {
   stores: Store[];
-  currentStore: Store | null;
   loading: boolean;
   error: string | null;
 }
 
-interface ErrorResponse {
-  message: string;
-}
-
-export interface Store {
-  id: string;
-  name: string;
-  description: string;
-  address: string;
-  phone: string;
-  email: string;
-  ownerId: string;
-  createdAt: string;
-  updatedAt: string;
-  [key: string]: any;
-}
-
-interface CreateStoreData {
-  name: string;
-  description: string;
-  address: string;
-  phone: string;
-  email: string;
-  [key: string]: any;
-}
-
 const initialState: StoreState = {
   stores: [],
-  currentStore: null,
   loading: false,
   error: null
 };
 
-// Async thunks
-export const getAllStores = createAsyncThunk<Store[], void, { rejectValue: ErrorResponse }>(
-  'store/getAll',
+export const fetchStores = createAsyncThunk(
+  'store/fetchStores',
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return response.data;
+      console.log('Fetching stores...');
+      const response = await axiosInstance.get('/stores');
+      console.log('Raw API Response:', response);
+      console.log('Response Data:', response.data);
+      console.log('Response Data Type:', typeof response.data);
+      console.log('Is Array?', Array.isArray(response.data));
+      console.log('Response Structure:', JSON.stringify(response.data, null, 2));
+      
+      // Ensure we're returning an array of stores
+      const stores = response.data.stores || [];
+      console.log('Processed Stores:', stores);
+      console.log('Stores Length:', stores.length);
+      
+      if (stores.length === 0) {
+        console.log('No stores found for the current user');
+      }
+      
+      return stores;
     } catch (error: any) {
-      return rejectWithValue({
-        message: error.response?.data?.message || error.message
-      });
+      console.error('Failed to fetch stores:', error);
+      console.error('Error Response:', error.response);
+      console.error('Error Status:', error.response?.status);
+      console.error('Error Data:', error.response?.data);
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch stores');
     }
   }
 );
 
-export const getStoreById = createAsyncThunk<Store, string, { rejectValue: ErrorResponse }>(
-  'store/getById',
-  async (storeId, { rejectWithValue }) => {
+export const createStore = createAsyncThunk(
+  'store/createStore',
+  async (storeData: { name: string; owner: number }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.get(`${API_URL}/${storeId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return response.data;
+      console.log('Creating store with data:', storeData);
+      const response = await axiosInstance.post('/stores', storeData);
+      console.log('Store creation response:', response.data);
+      return response.data.store;
     } catch (error: any) {
-      return rejectWithValue({
-        message: error.response?.data?.message || error.message
-      });
+      console.error('Error creating store:', error.response?.data || error.message);
+      return rejectWithValue(error.response?.data?.message || 'Failed to create store');
     }
   }
 );
 
-export const createStore = createAsyncThunk<Store, CreateStoreData, { rejectValue: ErrorResponse }>(
-  'store/create',
-  async (storeData, { rejectWithValue }) => {
+export const updateStore = createAsyncThunk(
+  'store/updateStore',
+  async ({ id, storeData }: { id: number; storeData: Partial<Store> }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.post(API_URL, storeData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return response.data;
+      const response = await axiosInstance.patch(`/stores/${id}`, storeData);
+      return response.data.store;
     } catch (error: any) {
-      return rejectWithValue({
-        message: error.response?.data?.message || error.message
-      });
+      return rejectWithValue(error.response?.data?.message || 'Failed to update store');
     }
   }
 );
 
-export const updateStore = createAsyncThunk<Store, { storeId: string; storeData: Partial<CreateStoreData> }, { rejectValue: ErrorResponse }>(
-  'store/update',
-  async ({ storeId, storeData }, { rejectWithValue }) => {
+export const deleteStore = createAsyncThunk(
+  'store/deleteStore',
+  async (id: number, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.patch(`${API_URL}/${storeId}`, storeData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return response.data;
+      await axiosInstance.delete(`/stores/${id}`);
+      return id;
     } catch (error: any) {
-      return rejectWithValue({
-        message: error.response?.data?.message || error.message
-      });
-    }
-  }
-);
-
-export const deleteStore = createAsyncThunk<void, string, { rejectValue: ErrorResponse }>(
-  'store/delete',
-  async (storeId, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      await axios.delete(`${API_URL}/${storeId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-    } catch (error: any) {
-      return rejectWithValue({
-        message: error.response?.data?.message || error.message
-      });
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete store');
     }
   }
 );
@@ -132,72 +99,60 @@ const storeSlice = createSlice({
   name: 'store',
   initialState,
   reducers: {
-    clearError: (state) => {
+    clearStoreError: (state) => {
       state.error = null;
-    },
-    setCurrentStore: (state, action: PayloadAction<Store | null>) => {
-      state.currentStore = action.payload;
     }
   },
   extraReducers: (builder) => {
     builder
-      // Get All Stores
-      .addCase(getAllStores.pending, (state) => {
+      // Fetch Stores
+      .addCase(fetchStores.pending, (state) => {
+        console.log('Fetching stores - Pending');
         state.loading = true;
         state.error = null;
       })
-      .addCase(getAllStores.fulfilled, (state, action: PayloadAction<Store[]>) => {
+      .addCase(fetchStores.fulfilled, (state, action) => {
+        console.log('Fetching stores - Fulfilled');
+        console.log('Action Payload:', action.payload);
         state.loading = false;
-        state.stores = action.payload;
+        state.stores = Array.isArray(action.payload) ? action.payload : [];
+        console.log('Updated State Stores:', state.stores);
       })
-      .addCase(getAllStores.rejected, (state, action) => {
+      .addCase(fetchStores.rejected, (state, action) => {
+        console.log('Fetching stores - Rejected');
+        console.log('Error Payload:', action.payload);
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to fetch stores';
-      })
-      // Get Store By ID
-      .addCase(getStoreById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(getStoreById.fulfilled, (state, action: PayloadAction<Store>) => {
-        state.loading = false;
-        state.currentStore = action.payload;
-      })
-      .addCase(getStoreById.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload?.message || 'Failed to fetch store';
+        state.error = action.payload as string;
+        state.stores = [];
       })
       // Create Store
       .addCase(createStore.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(createStore.fulfilled, (state, action: PayloadAction<Store>) => {
+      .addCase(createStore.fulfilled, (state, action) => {
         state.loading = false;
         state.stores.push(action.payload);
       })
       .addCase(createStore.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to create store';
+        state.error = action.payload as string;
       })
       // Update Store
       .addCase(updateStore.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateStore.fulfilled, (state, action: PayloadAction<Store>) => {
+      .addCase(updateStore.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.stores.findIndex(store => store.id === action.payload.id);
+        const index = state.stores.findIndex(store => store._id === action.payload._id);
         if (index !== -1) {
           state.stores[index] = action.payload;
-        }
-        if (state.currentStore?.id === action.payload.id) {
-          state.currentStore = action.payload;
         }
       })
       .addCase(updateStore.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to update store';
+        state.error = action.payload as string;
       })
       // Delete Store
       .addCase(deleteStore.pending, (state) => {
@@ -206,17 +161,14 @@ const storeSlice = createSlice({
       })
       .addCase(deleteStore.fulfilled, (state, action) => {
         state.loading = false;
-        state.stores = state.stores.filter(store => store.id !== action.meta.arg);
-        if (state.currentStore?.id === action.meta.arg) {
-          state.currentStore = null;
-        }
+        state.stores = state.stores.filter(store => store._id !== action.payload);
       })
       .addCase(deleteStore.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to delete store';
+        state.error = action.payload as string;
       });
   }
 });
 
-export const { clearError, setCurrentStore } = storeSlice.actions;
+export const { clearStoreError } = storeSlice.actions;
 export default storeSlice.reducer; 

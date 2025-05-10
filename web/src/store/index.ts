@@ -12,11 +12,7 @@ export const store = configureStore({
     store: storeReducer,
     product: productReducer,
     order: orderReducer
-  },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: false
-    })
+  }
 });
 
 export type RootState = ReturnType<typeof store.getState>;

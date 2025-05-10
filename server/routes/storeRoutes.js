@@ -1,4 +1,5 @@
 import express from 'express';
+import passport from 'passport';
 import { getAllStores, createStore, updateStore, deleteStore, getStoreById } from '../controllers/storeController.js';
 
 const router = express.Router();
@@ -16,10 +17,13 @@ const router = express.Router();
 // ✅ PATCH stores/:sid {store} : Updates the store with id = sid (200).
 // ✅ DELETE stores/:sid {} : Soft deletes a store with id = sid (200).
 
-router.get('/', getAllStores); // get all stores under a user or all stores in the database
-router.get('/:sid', getStoreById); // get a store with id = sid
-router.post('/', createStore); // create a new store
-router.patch('/:sid', updateStore); // update a store with id = sid
-router.delete('/:sid', deleteStore); // soft delete a store with id = sid
+// All routes require authentication
+router.use(passport.authenticate("jwt", { session: false }));
+
+router.get('/', getAllStores);
+router.get('/:sid', getStoreById);
+router.post('/', createStore);
+router.patch('/:sid', updateStore);
+router.delete('/:sid', deleteStore);
 
 export default router;

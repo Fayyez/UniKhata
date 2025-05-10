@@ -5,6 +5,9 @@ import Sidebar from '../components/Sidebar';
 import OrdersTab from '../components/OrdersTab';
 import ProductsTab from '../components/ProductsTab';
 import OrdersAnalyticsTab from '../components/OrdersAnalyticsTab';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
+import UnauthorizedPage from "./UnauthorizedPage";
 
 const StorePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +23,13 @@ const StorePage: React.FC = () => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [activeQuick, setActiveQuick] = useState<string>('Today');
+  const { user, loading: authLoading } = useSelector((state: RootState) => state.auth);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (user) setIsAuthorized(true);
+    else if (!authLoading) setIsAuthorized(false);
+  }, [user, authLoading]);
 
   useEffect(() => {
     const today = new Date();
@@ -126,6 +136,10 @@ const StorePage: React.FC = () => {
       </svg>
     )}
   ];
+
+  if (isAuthorized === false) {
+    return <UnauthorizedPage />;
+  }
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-gray-900">

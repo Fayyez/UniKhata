@@ -1,178 +1,99 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axiosInstance from '../../utils/axios';
 
-const API_URL = 'http://localhost:4000/api/orders';
+export interface OrderItem {
+  product: string;
+  quantity: number;
+  price: number;
+}
 
-export interface OrderState {
+export interface Order {
+  _id: string;
+  store: string;
+  items: OrderItem[];
+  totalAmount: number;
+  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  shippingAddress: string;
+  paymentMethod: 'cash' | 'card';
+  paymentStatus: 'pending' | 'paid' | 'failed';
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface OrderState {
   orders: Order[];
-  newOrders: Order[];
   currentOrder: Order | null;
   loading: boolean;
   error: string | null;
 }
 
-interface ErrorResponse {
-  message: string;
-}
-
-export interface OrderItem {
-  productId: string;
-  quantity: number;
-  price: number;
-  [key: string]: any;
-}
-
-export interface Order {
-  id: string;
-  userId: string;
-  storeId: string;
-  items: OrderItem[];
-  totalAmount: number;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled';
-  paymentStatus: 'pending' | 'paid' | 'failed';
-  shippingAddress: string;
-  createdAt: string;
-  updatedAt: string;
-  [key: string]: any;
-}
-
-interface CreateOrderData {
-  storeId: string;
-  items: OrderItem[];
-  shippingAddress: string;
-  [key: string]: any;
-}
-
-interface UpdateOrderData {
-  status?: Order['status'];
-  paymentStatus?: Order['paymentStatus'];
-  shippingAddress?: string;
-  [key: string]: any;
-}
-
 const initialState: OrderState = {
   orders: [],
-  newOrders: [],
   currentOrder: null,
   loading: false,
   error: null
 };
 
-// Async thunks
-export const getAllOrders = createAsyncThunk<Order[], void, { rejectValue: ErrorResponse }>(
-  'order/getAll',
-  async (_, { rejectWithValue }) => {
+export const fetchOrders = createAsyncThunk<Order[], string, { rejectValue: string }>(
+  'order/fetchOrders',
+  async (storeId, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axiosInstance.get(`/api/stores/${storeId}/orders`);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue({
-        message: error.response?.data?.message || error.message
-      });
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch orders');
     }
   }
 );
 
-export const getOrderById = createAsyncThunk<Order, string, { rejectValue: ErrorResponse }>(
-  'order/getById',
-  async (orderId, { rejectWithValue }) => {
+export const fetchOrderById = createAsyncThunk<Order, { storeId: string; orderId: string }, { rejectValue: string }>(
+  'order/fetchOrderById',
+  async ({ storeId, orderId }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.get(`${API_URL}/${orderId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axiosInstance.get(`/api/stores/${storeId}/orders/${orderId}`);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue({
-        message: error.response?.data?.message || error.message
-      });
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch order');
     }
   }
 );
 
-export const getNewOrders = createAsyncThunk<Order[], void, { rejectValue: ErrorResponse }>(
-  'order/getNew',
-  async (_, { rejectWithValue }) => {
+export const createOrder = createAsyncThunk<Order, { storeId: string; data: Partial<Order> }, { rejectValue: string }>(
+  'order/createOrder',
+  async ({ storeId, data }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.get(`${API_URL}/new`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axiosInstance.post(`/api/stores/${storeId}/orders`, data);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue({
-        message: error.response?.data?.message || error.message
-      });
+      return rejectWithValue(error.response?.data?.message || 'Failed to create order');
     }
   }
 );
 
-export const createOrder = createAsyncThunk<Order, CreateOrderData, { rejectValue: ErrorResponse }>(
-  'order/create',
-  async (orderData, { rejectWithValue }) => {
+export const updateOrder = createAsyncThunk<Order, { storeId: string; orderId: string; data: Partial<Order> }, { rejectValue: string }>(
+  'order/updateOrder',
+  async ({ storeId, orderId, data }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.post(API_URL, orderData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axiosInstance.put(`/api/stores/${storeId}/orders/${orderId}`, data);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue({
-        message: error.response?.data?.message || error.message
-      });
+      return rejectWithValue(error.response?.data?.message || 'Failed to update order');
     }
   }
 );
 
-export const updateOrder = createAsyncThunk<Order, { orderId: string; orderData: UpdateOrderData }, { rejectValue: ErrorResponse }>(
-  'order/update',
-  async ({ orderId, orderData }, { rejectWithValue }) => {
+export const deleteOrder = createAsyncThunk<{ storeId: string; orderId: string }, { storeId: string; orderId: string }, { rejectValue: string }>(
+  'order/deleteOrder',
+  async ({ storeId, orderId }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.patch(`${API_URL}/${orderId}`, orderData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return response.data;
+      await axiosInstance.delete(`/api/stores/${storeId}/orders/${orderId}`);
+      return { storeId, orderId };
     } catch (error: any) {
-      return rejectWithValue({
-        message: error.response?.data?.message || error.message
-      });
-    }
-  }
-);
-
-export const deleteOrder = createAsyncThunk<void, string, { rejectValue: ErrorResponse }>(
-  'order/delete',
-  async (orderId, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      await axios.delete(`${API_URL}/${orderId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-    } catch (error: any) {
-      return rejectWithValue({
-        message: error.response?.data?.message || error.message
-      });
-    }
-  }
-);
-
-export const changeOrderStatus = createAsyncThunk<Order, { orderId: string; status: Order['status'] }, { rejectValue: ErrorResponse }>(
-  'order/changeStatus',
-  async ({ orderId, status }, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const response = await axios.patch(`${API_URL}/${orderId}/status`, { status }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue({
-        message: error.response?.data?.message || error.message
-      });
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete order');
     }
   }
 );
@@ -190,44 +111,31 @@ const orderSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Get All Orders
-      .addCase(getAllOrders.pending, (state) => {
+      // Fetch Orders
+      .addCase(fetchOrders.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getAllOrders.fulfilled, (state, action: PayloadAction<Order[]>) => {
+      .addCase(fetchOrders.fulfilled, (state, action: PayloadAction<Order[]>) => {
         state.loading = false;
         state.orders = action.payload;
       })
-      .addCase(getAllOrders.rejected, (state, action) => {
+      .addCase(fetchOrders.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to fetch orders';
+        state.error = action.payload || 'Failed to fetch orders';
       })
-      // Get Order By ID
-      .addCase(getOrderById.pending, (state) => {
+      // Fetch Order by ID
+      .addCase(fetchOrderById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getOrderById.fulfilled, (state, action: PayloadAction<Order>) => {
+      .addCase(fetchOrderById.fulfilled, (state, action: PayloadAction<Order>) => {
         state.loading = false;
         state.currentOrder = action.payload;
       })
-      .addCase(getOrderById.rejected, (state, action) => {
+      .addCase(fetchOrderById.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to fetch order';
-      })
-      // Get New Orders
-      .addCase(getNewOrders.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(getNewOrders.fulfilled, (state, action: PayloadAction<Order[]>) => {
-        state.loading = false;
-        state.newOrders = action.payload;
-      })
-      .addCase(getNewOrders.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload?.message || 'Failed to fetch new orders';
+        state.error = action.payload || 'Failed to fetch order';
       })
       // Create Order
       .addCase(createOrder.pending, (state) => {
@@ -240,7 +148,7 @@ const orderSlice = createSlice({
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to create order';
+        state.error = action.payload || 'Failed to create order';
       })
       // Update Order
       .addCase(updateOrder.pending, (state) => {
@@ -249,52 +157,33 @@ const orderSlice = createSlice({
       })
       .addCase(updateOrder.fulfilled, (state, action: PayloadAction<Order>) => {
         state.loading = false;
-        const index = state.orders.findIndex(order => order.id === action.payload.id);
+        const index = state.orders.findIndex(order => order._id === action.payload._id);
         if (index !== -1) {
           state.orders[index] = action.payload;
         }
-        if (state.currentOrder?.id === action.payload.id) {
+        if (state.currentOrder?._id === action.payload._id) {
           state.currentOrder = action.payload;
         }
       })
       .addCase(updateOrder.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to update order';
+        state.error = action.payload || 'Failed to update order';
       })
       // Delete Order
       .addCase(deleteOrder.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteOrder.fulfilled, (state, action) => {
+      .addCase(deleteOrder.fulfilled, (state, action: PayloadAction<{ storeId: string; orderId: string }>) => {
         state.loading = false;
-        state.orders = state.orders.filter(order => order.id !== action.meta.arg);
-        if (state.currentOrder?.id === action.meta.arg) {
+        state.orders = state.orders.filter(order => order._id !== action.payload.orderId);
+        if (state.currentOrder?._id === action.payload.orderId) {
           state.currentOrder = null;
         }
       })
       .addCase(deleteOrder.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || 'Failed to delete order';
-      })
-      // Change Order Status
-      .addCase(changeOrderStatus.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(changeOrderStatus.fulfilled, (state, action: PayloadAction<Order>) => {
-        state.loading = false;
-        const index = state.orders.findIndex(order => order.id === action.payload.id);
-        if (index !== -1) {
-          state.orders[index] = action.payload;
-        }
-        if (state.currentOrder?.id === action.payload.id) {
-          state.currentOrder = action.payload;
-        }
-      })
-      .addCase(changeOrderStatus.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload?.message || 'Failed to change order status';
+        state.error = action.payload || 'Failed to delete order';
       });
   }
 });

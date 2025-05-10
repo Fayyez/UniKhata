@@ -17,12 +17,9 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       const result = await dispatch(login({ email, password })).unwrap();
-      if (result.accessToken) {
-        // set access token to authorization as bearer
-        // axios.defaults.headers.common['Authorization'] = `Bearer ${result.accessToken}`;
-        console.log("sending tokens to dashboard", result.accessToken);
-        
-        navigate(`/dashboard?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`);
+      if (result.tokens.accessToken) {
+        console.log("sending tokens to dashboard", result.tokens.accessToken);
+        navigate(`/dashboard?accessToken=${result.tokens.accessToken}&refreshToken=${result.tokens.refreshToken}`);
       }
     } catch (err) {
       // Error is handled by Redux state

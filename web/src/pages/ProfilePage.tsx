@@ -3,29 +3,52 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
-import { fetchUserProfile, updateUserProfile } from '../store/slices/userSlice';
+import { getUserInfo } from "../store/slices/authSlice";
+import { fetchUserProfile, updateUserProfile, changePassword } from '../store/slices/userSlice';
 import type { AppDispatch, RootState } from '../store';
 import type { UserProfile } from '../store/slices/userSlice';
 
 const ProfilePage: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useSelector((state: RootState) => state.auth);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   
   const { profile, loading, error } = useSelector((state: RootState) => state.user);
   const [tempProfile, setTempProfile] = useState<Partial<UserProfile>>({});
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
     dispatch(fetchUserProfile());
   }, [dispatch]);
 
   useEffect(() => {
+    if (!user) {
+      dispatch(getUserInfo());
+    }
+    console.log("user", user);
+  }, [dispatch, user]);
+
+  useEffect(() => {
     if (profile) {
-      setTempProfile(profile);
+      setTempProfile({
+        ...profile,
+        stores: profile.stores || []
+      });
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (user) setIsAuthorized(true);
+    else if (!authLoading) setIsAuthorized(false);
+  }, [user, authLoading]);
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -45,13 +68,52 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const validatePasswords = () => {
+    if (!currentPassword) {
+      setPasswordError('Current password is required');
+      return false;
+    }
+    if (!newPassword) {
+      setPasswordError('New password is required');
+      return false;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return false;
+    }
+    setPasswordError('');
+    return true;
+  };
+
   const handleSave = async () => {
     try {
       await dispatch(updateUserProfile({
         name: tempProfile.name,
+        email: tempProfile.email,
         avatar: tempProfile.avatar
       })).unwrap();
       setIsEditing(false);
+      window.location.reload();
+    } catch (err) {
+      // Error is handled by Redux state
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!validatePasswords()) {
+      return;
+    }
+
+    try {
+      await dispatch(changePassword({
+        oldPassword: currentPassword,
+        newPassword,
+      })).unwrap();
+      setShowPasswordModal(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordError('');
     } catch (err) {
       // Error is handled by Redux state
     }
@@ -107,8 +169,8 @@ const ProfilePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-gray-900">
       <Navbar 
-        userName={profile.name}
-        userImage={profile.avatar}
+        userName={profile?.name || 'User'}
+        userImage={profile?.avatar}
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
       />
       <div className="flex">
@@ -120,14 +182,22 @@ const ProfilePage: React.FC = () => {
               <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex justify-between items-center">
                   <h1 className="text-2xl font-medium text-gray-900 dark:text-white">Profile Settings</h1>
-                  {!isEditing && (
+                  <div className="flex space-x-3">
                     <button
-                      onClick={() => setIsEditing(true)}
+                      onClick={() => setShowPasswordModal(true)}
                       className="px-4 py-2 text-sm font-medium text-[#1a73e8] hover:bg-[#1a73e8]/5 dark:hover:bg-[#1a73e8]/10 rounded-full"
                     >
-                      Edit Profile
+                      Change Password
                     </button>
-                  )}
+                    {!isEditing && (
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="px-4 py-2 text-sm font-medium text-[#1a73e8] hover:bg-[#1a73e8]/5 dark:hover:bg-[#1a73e8]/10 rounded-full"
+                      >
+                        Edit Profile
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -189,25 +259,16 @@ const ProfilePage: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Email Address
                     </label>
-                    <p className="text-gray-900 dark:text-white py-2">{profile.email}</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Google ID
-                    </label>
-                    <p className="text-gray-900 dark:text-white py-2">{profile.googleId || 'Not connected'}</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Stores
-                    </label>
-                    <p className="text-gray-900 dark:text-white py-2">
-                      {profile.stores.length > 0 
-                        ? `${profile.stores.length} store(s)` 
-                        : 'No stores yet'}
-                    </p>
+                    {isEditing ? (
+                      <input
+                        type="email"
+                        value={tempProfile.email || ''}
+                        onChange={(e) => setTempProfile(prev => ({ ...prev, email: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a73e8] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
+                    ) : (
+                      <p className="text-gray-900 dark:text-white py-2">{profile.email}</p>
+                    )}
                   </div>
 
                   {isEditing && (
@@ -232,6 +293,73 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Change Password</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a73e8] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a73e8] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a73e8] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+                {passwordError && (
+                  <p className="mt-1 text-sm text-red-500">{passwordError}</p>
+                )}
+              </div>
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  onClick={() => {
+                    setShowPasswordModal(false);
+                    setCurrentPassword('');
+                    setNewPassword('');
+                    setConfirmPassword('');
+                    setPasswordError('');
+                  }}
+                  className="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePasswordChange}
+                  className="px-6 py-2 text-sm font-medium text-white bg-[#1a73e8] hover:bg-[#1557b0] rounded-lg"
+                >
+                  Change Password
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
