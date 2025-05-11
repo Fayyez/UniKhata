@@ -38,7 +38,7 @@ router.post(
   (req, res) => {
     const tokens = generateTokens(req.user);
     //res.redirect(`http://localhost:5173/landing?accessToken=${accessToken}&refreshToken=${refreshToken}`);
-    res.json(tokens);
+    res.json({ message: 'Login successful', tokens });
   }
 );
 
@@ -58,12 +58,12 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ email, password: hashedPassword, name });
+    //const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ email, password, name });
     await newUser.save();
 
     const tokens = generateTokens(newUser);
-    res.status(201).json(tokens);
+    res.status(201).json({ message: 'User created successfully', tokens });
   } catch (error) {
     res.status(500).json({ message: "Error creating user" });
   }
@@ -78,7 +78,7 @@ router.post("/refresh", async (req, res) => {
     }
 
     const newAccessToken = refreshAccessToken(refreshToken);
-    res.json({ accessToken: newAccessToken });
+    res.json({ message: 'Token refreshed successfully', accessToken: newAccessToken });
   } catch (error) {
     res.status(401).json({ message: "Invalid refresh token" });
   }
@@ -90,7 +90,9 @@ router.get(
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
     // TODO: fetch user data from database instead of directly sending
+    console.log("user-info", req.user);
     res.json({
+        message: 'User info fetched successfully',
         id: req.user._id,
         email: req.user.email,
         name: req.user.name,

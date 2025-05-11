@@ -1,5 +1,6 @@
 import express from 'express';
 import passport from 'passport';
+import passport from 'passport';
 import { getAllStores, createStore, updateStore, deleteStore, getStoreById } from '../controllers/storeController.js';
 
 const router = express.Router();

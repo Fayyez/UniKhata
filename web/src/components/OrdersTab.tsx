@@ -1,6 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchOrders } from '../store/slices/orderSlice';
+import type { RootState, AppDispatch } from '../store';
+import type { Order } from '../store/slices/orderSlice';
 
-const OrdersTab: React.FC = () => {
+interface OrdersTabProps {
+  storeId: string | undefined;
+  userId: string | undefined;
+}
+
+const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { orders, loading, error } = useSelector((state: RootState) => state.order);
   const [ordersRange, setOrdersRange] = useState('Today');
   const [isRangeDropdownOpen, setIsRangeDropdownOpen] = useState(false);
   const rangeBtnRef = useRef<HTMLButtonElement>(null);
@@ -8,6 +19,10 @@ const OrdersTab: React.FC = () => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [activeQuick, setActiveQuick] = useState<string>('Today');
+
+  useEffect(() => {
+    dispatch(fetchOrders({ uid: userId, sid: storeId }));
+  }, [dispatch, storeId, userId]);
 
   useEffect(() => {
     const today = new Date();
@@ -81,6 +96,9 @@ const OrdersTab: React.FC = () => {
     setEndDate(val);
     setActiveQuick('');
   };
+
+  if (loading) return <div className="text-gray-900 dark:text-white">Loading orders...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <>
@@ -159,23 +177,31 @@ const OrdersTab: React.FC = () => {
         </div>
         <div className="flex flex-col items-center min-w-[120px] border-l border-gray-200 dark:border-gray-700 pl-4">
           <span className="text-xs text-gray-500 dark:text-gray-400">Total orders</span>
-          <span className="font-semibold text-lg text-gray-900 dark:text-white">48</span>
+          <span className="font-semibold text-lg text-gray-900 dark:text-white">{orders.length}</span>
         </div>
         <div className="flex flex-col items-center min-w-[160px] border-l border-gray-200 dark:border-gray-700 pl-4">
           <span className="text-xs text-gray-500 dark:text-gray-400">Ordered items over time</span>
-          <span className="font-semibold text-lg text-gray-900 dark:text-white">493</span>
+          <span className="font-semibold text-lg text-gray-900 dark:text-white">
+            {orders.reduce((total, order) => total + order.items.reduce((sum, item) => sum + item.quantity, 0), 0)}
+          </span>
         </div>
         <div className="flex flex-col items-center min-w-[100px] border-l border-gray-200 dark:border-gray-700 pl-4">
           <span className="text-xs text-gray-500 dark:text-gray-400">Returns</span>
-          <span className="font-semibold text-lg text-gray-900 dark:text-white">6</span>
+          <span className="font-semibold text-lg text-gray-900 dark:text-white">
+            {orders.filter(order => order.status === 'cancelled').length}
+          </span>
         </div>
         <div className="flex flex-col items-center min-w-[180px] border-l border-gray-200 dark:border-gray-700 pl-4">
           <span className="text-xs text-gray-500 dark:text-gray-400">Fulfilled orders over time</span>
-          <span className="font-semibold text-lg text-gray-900 dark:text-white">359</span>
+          <span className="font-semibold text-lg text-gray-900 dark:text-white">
+            {orders.filter(order => order.status === 'completed').length}
+          </span>
         </div>
         <div className="flex flex-col items-center min-w-[180px] border-l border-gray-200 dark:border-gray-700 pl-4">
           <span className="text-xs text-gray-500 dark:text-gray-400">Delivered orders over time</span>
-          <span className="font-semibold text-lg text-gray-900 dark:text-white">353</span>
+          <span className="font-semibold text-lg text-gray-900 dark:text-white">
+            {orders.filter(order => order.status === 'completed').length}
+          </span>
         </div>
       </div>
       {/* Orders Table */}
@@ -185,38 +211,68 @@ const OrdersTab: React.FC = () => {
             <tr>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Order ID</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customer</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Items</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Payment</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created At</th>
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {/* Mock data */}
-            {[
-              { id: 'ORD-001', customer: 'Alice Smith', date: '2024-06-01', status: 'Fulfilled', total: '$120.00' },
-              { id: 'ORD-002', customer: 'Bob Johnson', date: '2024-06-01', status: 'Pending', total: '$80.00' },
-              { id: 'ORD-003', customer: 'Charlie Lee', date: '2024-06-01', status: 'Delivered', total: '$150.00' },
-              { id: 'ORD-004', customer: 'Diana Prince', date: '2024-06-01', status: 'Returned', total: '$60.00' },
-              { id: 'ORD-005', customer: 'Eve Adams', date: '2024-06-01', status: 'Fulfilled', total: '$200.00' },
-            ].map((order) => (
-              <tr key={order.id}>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">{order.id}</td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">{order.customer}</td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{order.date}</td>
+            {orders.map((order) => (
+              <tr key={order._id}>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">#{order._id}</td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  <div className="flex flex-col">
+                    <span>{order.customerName}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{order.customerEmail}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
+                  <div className="space-y-1">
+                    {order.items.map((item, index) => (
+                      <div key={index} className="flex justify-between">
+                        <span>{item.product}</span>
+                        <span className="text-gray-500 dark:text-gray-400">x{item.quantity}</span>
+                      </div>
+                    ))}
+                  </div>
+                </td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  ${order.totalAmount.toFixed(2)}
+                </td>
                 <td className="px-4 py-2 whitespace-nowrap text-sm">
                   <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
-                    order.status === 'Fulfilled'
+                    order.status === 'completed'
                       ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                      : order.status === 'Pending'
+                      : order.status === 'processing'
                       ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                      : order.status === 'Delivered'
+                      : order.status === 'pending'
                       ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
                       : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                   }`}>
-                    {order.status}
+                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                   </span>
                 </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">{order.total}</td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm">
+                  <div className="flex flex-col">
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                      order.paymentStatus === 'paid'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        : order.paymentStatus === 'pending'
+                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                    }`}>
+                      {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {order.paymentMethod.charAt(0).toUpperCase() + order.paymentMethod.slice(1)}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  {new Date(order.createdAt).toLocaleDateString()}
+                </td>
               </tr>
             ))}
           </tbody>
