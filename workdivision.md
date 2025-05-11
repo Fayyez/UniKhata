@@ -1,21 +1,25 @@
 # Unikhata - Work Division
 
 ## Fayyez
-- Backend Architecture  
+- Project Structuring
+- System Architecture Designer
 - Database Designer  
-- UI Workflow  
+- UI & User Workflow Designer
 - Authentication / Authorization  
-- Integration Services  
+- Integration Services
 
 ## Eehab
-- Backend Services:  
-  - Product  
+- API Design, Tests & Implementation
+- Route, Controller and Model Implementations of:  
+  - Products
   - Order  
   - Store  
-  - User  
-  - Controller Implementation  
-- Database Designer  
-- Email Service  
+  - User    
+- Database Designer & Developer  
+- Email Sending Services
+- Logging Middleware
 
 ## Huzyefa Saqib
-- Frontend Design and Implementation
+- UI/UX Designer
+- Frontend Developer
+- Redux Storages
