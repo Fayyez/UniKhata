@@ -6,11 +6,12 @@ import createEStoreObjects from '../utils/estoreFactory.js';
 import DummyStore from '../integration/E-stores/DummyStore.js'; 
 export const getOrders = async (req, res) => {
     try {
-        const uid = req.query?.uid;
+        const uid = req.user?._id;
         const sid = req.query?.sid; 
         let orders;
         if (uid && sid) {
-            orders = await Order.find({ addedBy: uid, store: sid });
+            console.log("fetching all orders for this is the uid and sid", uid, sid);
+            orders = await Order.find({ store: sid });
         } else if (uid) {
             orders = await Order.find({ addedBy: uid });
         } else if (sid) {

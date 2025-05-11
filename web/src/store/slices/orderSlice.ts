@@ -45,12 +45,8 @@ export const fetchOrders = createAsyncThunk<Order[], FetchOrdersParams, { reject
   'order/fetchOrders',
   async ({ uid, sid }, { rejectWithValue }) => {
     try {
-      await axiosInstance.get(`/orders/new/?sid=${sid}`);
-      const response = await axiosInstance.request({
-        url: '/orders/',
-        method: 'get',
-        data: { sid: sid, uid: uid }
-      });
+      await axiosInstance.get(`/orders/new?sid=${sid}`);
+      const response = await axiosInstance.get(`/orders?uid=${uid}&sid=${sid}`);
       if (!response.data.orders) {
         return rejectWithValue('No orders found');
       }
@@ -65,7 +61,7 @@ export const fetchOrderById = createAsyncThunk<Order, { storeId: number; orderId
   'order/fetchOrderById',
   async ({ storeId, orderId }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/${storeId}/orders/${orderId}`);
+      const response = await axiosInstance.get(`/orders/${orderId}`);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch order');
@@ -113,7 +109,7 @@ export const changeStatus = createAsyncThunk<Order, { oid: number; status: strin
   'order/changeStatus',
   async ({ oid, status }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post(`/orders/`, { oid, status });
+      const response = await axiosInstance.patch(`orders/status/${oid}`, { status });
       if (!response.data.order) {
         return rejectWithValue('Failed to update order status');
       }

@@ -7,7 +7,7 @@ const courierIntegrationSchema = new mongoose.Schema({
     },
     title: String,
     courierName: { 
-        type: mongoose.Schema.Types.String, default: DUMMY_COURIER 
+        type: String, default: DUMMY_COURIER 
     }, // from "../utils/constants.js"
     emailOrCredential: mongoose.Schema.Types.String,
     apiEndpoint: mongoose.Schema.Types.String,

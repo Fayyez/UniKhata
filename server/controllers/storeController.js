@@ -64,12 +64,22 @@ export const createStore = async (req, res) => {
         const ecom = new EcommerceIntegration({
             store: newStore._id,
             platform: "DUMMY_STORE",
-            email: "test@test.com",
+            email: "fayyez2056@gmail.com",
             apiEndpoint: "http://localhost:4001",
+            token: "test_token"
+        })
+
+        const courier =new CourierIntegration({
+            store: newStore._id,
+            title: "my dummy courier",
+            courierName: "DUMMY_COURIER",
+            emailOrCredential: "fayyez2056@gmail.com",
+            apiEndpoint: "http://localhost:4002",
             token: "test_token"
         })
         // set newStores 
         newStore.eCommerceIntegrations.push(ecom._id);
+        newStore.courierIntegrations.push(courier._id);
         console.log('New store created:', newStore._id);
         newStore.save()
         .then(savedStore => {
@@ -86,6 +96,16 @@ export const createStore = async (req, res) => {
                 console.log("error");
                 throw error;
             })
+
+            courier.save()
+            .then(savedCourier => {
+                console.log("courier saved with success");
+            })
+            .catch(error => {
+                console.log("error");
+                throw error;
+            })
+
         }).catch(error => {
             console.log("error");
             throw error;
