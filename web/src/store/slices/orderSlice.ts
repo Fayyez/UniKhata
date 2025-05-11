@@ -45,6 +45,7 @@ export const fetchOrders = createAsyncThunk<Order[], FetchOrdersParams, { reject
   'order/fetchOrders',
   async ({ uid, sid }, { rejectWithValue }) => {
     try {
+      await axiosInstance.get(`/orders/new/?sid=${sid}`);
       const response = await axiosInstance.request({
         url: '/orders/',
         method: 'get',
