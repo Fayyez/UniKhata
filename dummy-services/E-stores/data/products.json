@@ -1,74 +1,82 @@
 [
     {
-        "id": 501,
-        "name": "Red Shirt",
-        "price": "50.00",
-        "stock": 10
+        "name": "Echo Dot",
+        "price": 49.99,
+        "tag": "electronics",
+        "description": "Smart speaker with Alexa voice control.",
+        "brand": "Amazon",
+        "stockAmount": 120
     },
     {
-        "id": 502,
-        "name": "Blue Jeans",
-        "price": "75.00",
-        "stock": 5
+        "name": "FitBand",
+        "price": 29.99,
+        "tag": "wearables",
+        "description": "Lightweight fitness tracker with heart rate monitor.",
+        "brand": "FitGear",
+        "stockAmount": 80
     },
     {
-        "id": 503,
-        "name": "Black T-Shirt",
-        "price": "35.00",
-        "stock": 15
+        "name": "SlimPen",
+        "price": 19.99,
+        "tag": "stationery",
+        "description": "Ergonomic ballpoint pen with smooth ink flow.",
+        "brand": "WritePro",
+        "stockAmount": 200
     },
     {
-        "id": 504,
-        "name": "White Sneakers",
-        "price": "89.99",
-        "stock": 8
+        "name": "QuickPan",
+        "price": 34.99,
+        "tag": "kitchen",
+        "description": "Non-stick frying pan with heat-resistant handle.",
+        "brand": "CookMate",
+        "stockAmount": 75
     },
     {
-        "id": 505,
-        "name": "Gray Hoodie",
-        "price": "65.00",
-        "stock": 12
+        "name": "FlexMat",
+        "price": 24.99,
+        "tag": "fitness",
+        "description": "Durable yoga mat with non-slip surface.",
+        "brand": "ZenMove",
+        "stockAmount": 95
     },
     {
-        "id": 506,
-        "name": "Denim Jacket",
-        "price": "120.00",
-        "stock": 4
+        "name": "GlowBulb",
+        "price": 14.99,
+        "tag": "home",
+        "description": "Smart LED bulb with adjustable brightness and color.",
+        "brand": "Brightly",
+        "stockAmount": 150
     },
     {
-        "id": 507,
-        "name": "Khaki Pants",
-        "price": "55.00",
-        "stock": 20
+        "name": "GamePad",
+        "price": 59.99,
+        "tag": "gaming",
+        "description": "Wireless game controller with vibration feedback.",
+        "brand": "PlayOn",
+        "stockAmount": 60
     },
     {
-        "id": 508,
-        "name": "Running Shorts",
-        "price": "30.00",
-        "stock": 25
+        "name": "SpeedHub",
+        "price": 39.99,
+        "tag": "computers",
+        "description": "USB-C hub with HDMI, USB 3.0, and SD card slots.",
+        "brand": "TechNest",
+        "stockAmount": 100
     },
     {
-        "id": 509,
-        "name": "Winter Coat",
-        "price": "199.99",
-        "stock": 6
+        "name": "ChillCup",
+        "price": 12.99,
+        "tag": "kitchen",
+        "description": "Insulated cup that keeps drinks cold for hours.",
+        "brand": "CoolSip",
+        "stockAmount": 110
     },
     {
-        "id": 510,
-        "name": "Wool Socks",
-        "price": "12.99",
-        "stock": 30
-    },
-    {
-        "id": 511,
-        "name": "Baseball Cap",
-        "price": "25.00",
-        "stock": 18
-    },
-    {
-        "id": 512,
-        "name": "Leather Belt",
-        "price": "45.00",
-        "stock": 14
+        "name": "SnapCam",
+        "price": 89.99,
+        "tag": "photography",
+        "description": "Compact digital camera with HD video recording.",
+        "brand": "PhotoPro",
+        "stockAmount": 40
     }
 ]

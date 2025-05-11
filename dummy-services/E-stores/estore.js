@@ -12,7 +12,6 @@ const paymentRoutes = require("./routes/payments");
 // Use routes
 app.use("/orders", orderRoutes);
 app.use("/products", productRoutes);
-app.use("/payments", paymentRoutes);
 
 // Start server
 app.listen(PORT, () => {
