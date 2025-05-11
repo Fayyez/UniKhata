@@ -7,6 +7,8 @@ import DashboardPage from "./pages/DashboardPage";
 import ProfilePage from "./pages/ProfilePage";
 import CreateStorePage from "./pages/CreateStorePage";
 import StorePage from "./pages/StorePage";
+import SplashScreen from "./pages/SplashScreen";
+import HomePage from "./pages/HomePage";
 
 function App() {
   return (
@@ -14,7 +16,8 @@ function App() {
       <div className="min-h-screen bg-white dark:bg-gray-900">
         <ThemeToggle />
         <Routes>
-          <Route path="/" element={<LoginPage />} />
+          <Route path="/" element={<SplashScreen />} />
+          <Route path="/home" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />

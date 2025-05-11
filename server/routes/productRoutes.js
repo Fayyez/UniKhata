@@ -1,6 +1,6 @@
 import express from "express";
 import passport from 'passport';
-import { getAllProducts, createProduct, updateProduct, deleteProduct, getProductById } from "../controllers/productController.js";
+import { getAllProducts, createProduct, updateProduct, deleteProduct, getProductById, checkProductStocks } from "../controllers/productController.js";
 
 const router = express.Router();
 
@@ -20,6 +20,7 @@ const router = express.Router();
 
 router.get('/', passport.authenticate('jwt', { session: false }), getAllProducts); // get all products under a user or store or all products in the database
 router.get('/:pid', passport.authenticate('jwt', { session: false }), getProductById); // get a product with id = pid
+router.get('/low-stocks/:sid', passport.authenticate('jwt', { session: false }), checkProductStocks); // get products with low stocks
 router.post('/', passport.authenticate('jwt', { session: false }), createProduct); // create a new product
 router.patch('/:pid', passport.authenticate('jwt', { session: false }), updateProduct); // update a product with id = pid
 router.delete('/:pid', passport.authenticate('jwt', { session: false }), deleteProduct); // soft delete a product with id = pid

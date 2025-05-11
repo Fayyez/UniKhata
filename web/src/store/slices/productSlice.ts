@@ -9,8 +9,8 @@ export interface Product {
   stockAmount: number;
   brand: string;
   image?: string;
-  store: number;
-  addedBy: number;
+  store: string;
+  addedBy: string;
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
@@ -23,14 +23,15 @@ export const ProductDefaults: Omit<Product, '_id' | 'createdAt' | 'updatedAt'> =
   stockAmount: 0,
   brand: '',
   image: '',
-  store: 0,
-  addedBy: 0,
+  store: '',
+  addedBy: '',
   isDeleted: false
 };
 
 interface ProductState {
   products: Product[];
   currentProduct: Product | null;
+  lowStockProducts: Product[];
   loading: boolean;
   error: string | null;
 }
@@ -38,6 +39,7 @@ interface ProductState {
 const initialState: ProductState = {
   products: [],
   currentProduct: null,
+  lowStockProducts: [],
   loading: false,
   error: null
 };
@@ -46,11 +48,13 @@ export const fetchProducts = createAsyncThunk<Product[], string, { rejectValue: 
   'product/fetchProducts',
   async (storeId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.request({
-        url: '/products/',
-        method: 'get',
-        data: { sid: Number(storeId) }
-      });
+
+      // const response = await axiosInstance.request({
+      //   url: '/products/',
+      //   method: 'get',
+      //   data: { sid: Number(storeId) }
+      // });
+      const response = await axiosInstance.get(`/products/?sid=${storeId}`);
       console.log("nnnnn", response.data);
       return response.data.products;
     } catch (error: any) {
@@ -104,7 +108,7 @@ export const updateProduct = createAsyncThunk<Product, { storeId: string; produc
       // Ensure required fields are present and properly formatted
       const productData = {
         ...data,
-        store: Number(storeId),
+        store: storeId,
         price: Number(data.price),
         stockAmount: Number(data.stockAmount || 0),
         name: data.name?.trim(),
@@ -130,6 +134,18 @@ export const deleteProduct = createAsyncThunk<{ pid: string }, { pid: string }, 
       return { pid };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete product');
+    }
+  }
+);
+
+export const checkLowStockProducts = createAsyncThunk<Product[], string, { rejectValue: string }>(
+  'product/checkLowStockProducts',
+  async (storeId, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/products/low-stocks/${storeId}`);
+      return response.data.products;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch low stock products');
     }
   }
 );
@@ -220,6 +236,19 @@ const productSlice = createSlice({
       .addCase(deleteProduct.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to delete product';
+      })
+      // Check Low Stock Products
+      .addCase(checkLowStockProducts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(checkLowStockProducts.fulfilled, (state, action: PayloadAction<Product[]>) => {
+        state.loading = false;
+        state.lowStockProducts = action.payload;
+      })
+      .addCase(checkLowStockProducts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to fetch low stock products';
       });
   }
 });

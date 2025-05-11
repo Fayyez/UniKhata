@@ -5,13 +5,16 @@ import Sidebar from '../components/Sidebar';
 import OrdersTab from '../components/OrdersTab';
 import ProductsTab from '../components/ProductsTab';
 import OrdersAnalyticsTab from '../components/OrdersAnalyticsTab';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../store';
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState, AppDispatch } from '../store';
+import { checkLowStockProducts } from '../store/slices/productSlice';
 import UnauthorizedPage from "./UnauthorizedPage";
+import axiosInstance from '../utils/axios';
 
 const StorePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('orders');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -56,6 +59,42 @@ const StorePage: React.FC = () => {
     setEndDate(todayStr);
     setActiveQuick('Today');
   }, []);
+
+  // Add low stock check on store initialization
+  useEffect(() => {
+    const checkLowStock = async () => {
+      if (id) {
+        try {
+          const result = await dispatch(checkLowStockProducts(id)).unwrap();
+          if (result.length > 0 && currentStore?.owner) {
+            // Create email content
+            const productList = result
+              .map(product => `- ${product.name}: ${product.stockAmount} items remaining`)
+              .join('\n');
+
+            const emailContent = `
+              <h2>Low Stock Alert for ${currentStore.name}</h2>
+              <p>The following products are running low on stock:</p>
+              <pre>${productList}</pre>
+              <p>Please restock these items as soon as possible to avoid running out of stock.</p>
+              <p>Best regards,<br>UniKhata Team</p>
+            `;
+
+            
+
+            // Send email directly
+            //await sendEmail(currentStore.owner, `Low Stock Alert - ${currentStore.name}`, emailContent);
+          }
+        } catch (error) {
+          console.error('Failed to check low stock products:', error);
+        }
+      }
+    };
+
+    if (currentStore) {
+      checkLowStock();
+    }
+  }, [id, currentStore, dispatch]);
 
   // Helper functions for quick-selects
   const setToday = () => {
