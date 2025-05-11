@@ -31,6 +31,7 @@ export const ProductDefaults: Omit<Product, '_id' | 'createdAt' | 'updatedAt'> =
 interface ProductState {
   products: Product[];
   currentProduct: Product | null;
+  lowStockProducts: Product[];
   loading: boolean;
   error: string | null;
 }
@@ -38,6 +39,7 @@ interface ProductState {
 const initialState: ProductState = {
   products: [],
   currentProduct: null,
+  lowStockProducts: [],
   loading: false,
   error: null
 };
@@ -136,6 +138,18 @@ export const deleteProduct = createAsyncThunk<{ pid: string }, { pid: string }, 
   }
 );
 
+export const checkLowStockProducts = createAsyncThunk<Product[], string, { rejectValue: string }>(
+  'product/checkLowStockProducts',
+  async (storeId, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/products/low-stocks/${storeId}`);
+      return response.data.products;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch low stock products');
+    }
+  }
+);
+
 const productSlice = createSlice({
   name: 'product',
   initialState,
@@ -222,6 +236,19 @@ const productSlice = createSlice({
       .addCase(deleteProduct.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to delete product';
+      })
+      // Check Low Stock Products
+      .addCase(checkLowStockProducts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(checkLowStockProducts.fulfilled, (state, action: PayloadAction<Product[]>) => {
+        state.loading = false;
+        state.lowStockProducts = action.payload;
+      })
+      .addCase(checkLowStockProducts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to fetch low stock products';
       });
   }
 });
