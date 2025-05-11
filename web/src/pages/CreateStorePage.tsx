@@ -12,6 +12,7 @@ const CreateStorePage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error } = useSelector((state: RootState) => state.store);
   const { user, loading: authLoading } = useSelector((state: RootState) => state.auth);
+  const { stores } = useSelector((state: RootState) => state.store);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
@@ -58,6 +59,7 @@ const CreateStorePage: React.FC = () => {
 
   // Update owner ID when user data changes
   useEffect(() => {
+    console.log("user", user);
     if (user?.id) {
       setFormData(prev => ({
         ...prev,
@@ -176,7 +178,7 @@ const CreateStorePage: React.FC = () => {
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
       />
       <div className="flex">
-        <Sidebar isOpen={isSidebarOpen} />
+        <Sidebar isOpen={isSidebarOpen} stores={stores} />
         
         <div className="flex-1 pt-16 transition-all duration-200">
           <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">

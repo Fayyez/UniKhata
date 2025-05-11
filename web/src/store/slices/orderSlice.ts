@@ -37,8 +37,8 @@ const initialState: OrderState = {
 };
 
 interface FetchOrdersParams {
-  uid?: string;
-  sid?: string;
+  uid?: number;
+  sid?: number;
 }
 
 export const fetchOrders = createAsyncThunk<Order[], FetchOrdersParams, { rejectValue: string }>(
@@ -60,7 +60,7 @@ export const fetchOrders = createAsyncThunk<Order[], FetchOrdersParams, { reject
   }
 );
 
-export const fetchOrderById = createAsyncThunk<Order, { storeId: string; orderId: string }, { rejectValue: string }>(
+export const fetchOrderById = createAsyncThunk<Order, { storeId: number; orderId: number }, { rejectValue: string }>(
   'order/fetchOrderById',
   async ({ storeId, orderId }, { rejectWithValue }) => {
     try {
@@ -72,7 +72,7 @@ export const fetchOrderById = createAsyncThunk<Order, { storeId: string; orderId
   }
 );
 
-export const createOrder = createAsyncThunk<Order, { storeId: string; data: Partial<Order> }, { rejectValue: string }>(
+export const createOrder = createAsyncThunk<Order, { storeId: number; data: Partial<Order> }, { rejectValue: string }>(
   'order/createOrder',
   async ({ storeId, data }, { rejectWithValue }) => {
     try {
@@ -84,7 +84,7 @@ export const createOrder = createAsyncThunk<Order, { storeId: string; data: Part
   }
 );
 
-export const updateOrder = createAsyncThunk<Order, { storeId: string; orderId: string; data: Partial<Order> }, { rejectValue: string }>(
+export const updateOrder = createAsyncThunk<Order, { storeId: number; orderId: number; data: Partial<Order> }, { rejectValue: string }>(
   'order/updateOrder',
   async ({ storeId, orderId, data }, { rejectWithValue }) => {
     try {
@@ -96,7 +96,7 @@ export const updateOrder = createAsyncThunk<Order, { storeId: string; orderId: s
   }
 );
 
-export const deleteOrder = createAsyncThunk<{ storeId: string; orderId: string }, { storeId: string; orderId: string }, { rejectValue: string }>(
+export const deleteOrder = createAsyncThunk<{ storeId: number; orderId: number }, { storeId: number; orderId: number }, { rejectValue: string }>(
   'order/deleteOrder',
   async ({ storeId, orderId }, { rejectWithValue }) => {
     try {
@@ -108,7 +108,7 @@ export const deleteOrder = createAsyncThunk<{ storeId: string; orderId: string }
   }
 );
 
-export const changeStatus = createAsyncThunk<Order, { oid: string; status: string }, { rejectValue: string }>(
+export const changeStatus = createAsyncThunk<Order, { oid: number; status: string }, { rejectValue: string }>(
   'order/changeStatus',
   async ({ oid, status }, { rejectWithValue }) => {
     try {

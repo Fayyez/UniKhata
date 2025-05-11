@@ -6,12 +6,12 @@ import CourierIntegration from '../models/CourierIntegration.js';
 // GET /stores/ {uid?} : Returns all stores under a user or all stores in the database
 export const getAllStores = async (req, res) => {
     try {
-        const uid = req.body?.uid; 
+        const uid = req.query?.uid; 
         let stores;
         if (uid) {
-            if (isNaN(uid)) {
-                return res.status(400).json({ message: 'Invalid uid' });
-            }
+            // if (isNaN(uid)) {
+            //     return res.status(400).json({ message: 'Invalid uid' });
+            // }
             stores = await Store.find({ owner: uid, isDeleted: false });
         } else {
             stores = await Store.find({ isDeleted: false });
@@ -26,7 +26,7 @@ export const getAllStores = async (req, res) => {
 export const getStoreById = async (req, res) => {
     try {
         const sid = Number(req.params.sid);
-        if (!sid || isNaN(sid)) {
+        if (!sid) {
             return res.status(400).json({ message: 'Invalid store id' });
         }
         const store = await Store.findOne({ _id: sid, isDeleted: false });
@@ -92,7 +92,7 @@ export const createStore = async (req, res) => {
 export const updateStore = async (req, res) => {
     try {
         const sid = Number(req.params.sid);
-        if (!sid || isNaN(sid)) {
+        if (!sid) {
             return res.status(400).json({ message: 'Invalid store id' });
         }
         const updateData = req.body;
@@ -116,7 +116,7 @@ export const updateStore = async (req, res) => {
 export const deleteStore = async (req, res) => {
     try {
         const sid = Number(req.params.sid);
-        if (!sid || isNaN(sid)) {
+        if (!sid) {
             return res.status(400).json({ message: 'Invalid store id' });
         }
         const store = await Store.findOneAndUpdate(

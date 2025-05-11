@@ -1,8 +1,8 @@
 import Product from '../models/Product.js';
 
 export const getAllProducts = async (req, res) => {
-    const uid = req.body?.uid;
-    const sid = req.body?.sid;
+    const uid = req.query?.uid;
+    const sid = req.query?.sid; 
     const filters = req.query;
 
     const filtersExist = Object.keys(filters).length > 0; // check if filters exist
@@ -66,12 +66,13 @@ export const getProductById = async (req, res) => {
 };
 
 export const createProduct = async (req, res) => {
+    console.log("req.body", req.body);
     const newProduct = req.body;
     console.log("newProduct", newProduct);
     const product = new Product(newProduct); // create a new product object with the provided data
     console.log("newProduct", newProduct);
     
-    if (!newProduct.name || newProduct.price == null || isNaN(newProduct.price) || newProduct.price < 0) {
+    if (!newProduct.name || newProduct.price == null || newProduct.price < 0) {
         return res.status(400).json({ message: "Invalid product data" });
     }
     

@@ -3,6 +3,7 @@ import passport from "passport";
 import { generateTokens, refreshAccessToken } from "../utils/token.js";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
+import sendEmail from "../utils/mailer.js";
 
 const router = express.Router();
 
@@ -24,6 +25,12 @@ router.get(
     // "refreshtoken": abcs
     //}
     const {accessToken, refreshToken} = generateTokens(req.user);
+
+    try {
+      sendEmail(req.user.email, "Welcome To UniKhata - Your One Stop Ledger Management System", "You have successfully registered! Thank you for choosing UniKhata. We are excited to have you on board!");
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
     // Redirect to frontend with tokens as URL parameters
     res.redirect(
       `http://localhost:5173/dashboard?accessToken=${accessToken}&refreshToken=${refreshToken}`
@@ -63,6 +70,11 @@ router.post("/register", async (req, res) => {
     await newUser.save();
 
     const tokens = generateTokens(newUser);
+    try {
+      sendEmail(email, "Welcome To UniKhata - Your One Stop Ledger Management System", "You have successfully registered! Thank you for choosing UniKhata. We are excited to have you on board!");
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
     res.status(201).json({ message: 'User created successfully', tokens });
   } catch (error) {
     res.status(500).json({ message: "Error creating user" });

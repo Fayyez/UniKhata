@@ -6,8 +6,8 @@ import Product from '../models/Product.js';
 
 export const getOrders = async (req, res) => {
     try {
-        const uid = req.body?.uid;
-        const sid = req.body?.sid;
+        const uid = req.query?.uid;
+        const sid = req.query?.sid; 
         let orders;
         if (uid && sid) {
             orders = await Order.find({ addedBy: uid, store: sid });
@@ -42,9 +42,11 @@ export const getOrderById = async (req, res) => {
 
 export const getNewOrders = async (req, res) => {
     try {
-        const sid = req.body.sid;
-        const store = await Store.findById(sid).populate('eCommerceIntegrations');
-        const user = await User.findById(req.user?._id)
+        const sid = req.query?.sid;
+        if (!sid) {
+            return res.status(400).json({ message: "Store ID is required" });
+        }
+        const store = await Store.findById(sid);
         if (!store) {
             return res.status(404).json({ message: "Store not found" });
         }
