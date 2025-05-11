@@ -150,6 +150,17 @@ export const checkLowStockProducts = createAsyncThunk<Product[], string, { rejec
   }
 );
 
+export const sendLowStockEmail = createAsyncThunk<void, { email: string; subject: string; message: string }, { rejectValue: string }>(
+  'product/sendLowStockEmail',
+  async ({ email, subject, message }, { rejectWithValue }) => {
+    try {
+      await axiosInstance.post('/send-mail', { email, subject, message });
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to send email');
+    }
+  }
+);
+
 const productSlice = createSlice({
   name: 'product',
   initialState,
@@ -249,6 +260,18 @@ const productSlice = createSlice({
       .addCase(checkLowStockProducts.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to fetch low stock products';
+      })
+      // Send Low Stock Email
+      .addCase(sendLowStockEmail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(sendLowStockEmail.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(sendLowStockEmail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to send email';
       });
   }
 });

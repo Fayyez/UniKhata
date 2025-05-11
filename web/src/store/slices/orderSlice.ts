@@ -37,19 +37,19 @@ const initialState: OrderState = {
 };
 
 interface FetchOrdersParams {
-  uid?: number;
-  sid?: number;
+  uid?: string;
+  sid?: string;
 }
 
 export const fetchOrders = createAsyncThunk<Order[], FetchOrdersParams, { rejectValue: string }>(
   'order/fetchOrders',
   async ({ uid, sid }, { rejectWithValue }) => {
     try {
-      await axiosInstance.get(`/orders/new?sid=${sid}`);
+      await axiosInstance.get(`/orders/new/?sid=${sid}`);
       const response = await axiosInstance.request({
         url: '/orders/',
         method: 'get',
-        data: { sid: Number(sid), uid: Number(uid) }
+        data: { sid: sid, uid: uid }
       });
       if (!response.data.orders) {
         return rejectWithValue('No orders found');

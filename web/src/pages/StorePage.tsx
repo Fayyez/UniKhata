@@ -7,7 +7,7 @@ import ProductsTab from '../components/ProductsTab';
 import OrdersAnalyticsTab from '../components/OrdersAnalyticsTab';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../store';
-import { checkLowStockProducts } from '../store/slices/productSlice';
+import { checkLowStockProducts, sendLowStockEmail } from '../store/slices/productSlice';
 import UnauthorizedPage from "./UnauthorizedPage";
 import axiosInstance from '../utils/axios';
 
@@ -80,10 +80,12 @@ const StorePage: React.FC = () => {
               <p>Best regards,<br>UniKhata Team</p>
             `;
 
-            
-
-            // Send email directly
-            //await sendEmail(currentStore.owner, `Low Stock Alert - ${currentStore.name}`, emailContent);
+            // Send email using the action
+            await dispatch(sendLowStockEmail({
+              email: user.email,
+              subject: `Low Stock Alert - ${currentStore.name}`,
+              message: emailContent
+            })).unwrap();
           }
         } catch (error) {
           console.error('Failed to check low stock products:', error);
@@ -301,7 +303,7 @@ const StorePage: React.FC = () => {
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                 {/* Content will be rendered here based on activeTab */}
                 {activeTab === 'orders' ? (
-                  <OrdersTab storeId={Number(id)} userId={user.id} />
+                  <OrdersTab storeId={id} userId={user.id} />
                 ) : activeTab === 'products' ? (
                   <ProductsTab storeId={id} userId={user.id} />
                 ) : activeTab === 'analytics' ? (
