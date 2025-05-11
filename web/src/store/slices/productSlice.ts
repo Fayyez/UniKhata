@@ -46,11 +46,13 @@ export const fetchProducts = createAsyncThunk<Product[], string, { rejectValue: 
   'product/fetchProducts',
   async (storeId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.request({
-        url: '/products/',
-        method: 'get',
-        data: { sid: Number(storeId) }
-      });
+
+      // const response = await axiosInstance.request({
+      //   url: '/products/',
+      //   method: 'get',
+      //   data: { sid: Number(storeId) }
+      // });
+      const response = await axiosInstance.get(`/products/?sid=${storeId}`);
       console.log("nnnnn", response.data);
       return response.data.products;
     } catch (error: any) {

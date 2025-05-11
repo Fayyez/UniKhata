@@ -92,6 +92,7 @@ export const updateProduct = async (req, res) => {
     const productId = req.params.pid; // get the product id from the url
     try {
         const product = await Product.findByIdAndUpdate(productId, req.body, { new: true, runValidators: true }); // ensure productId is used as is and validators are run
+        console.log("product", product);
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
         }
