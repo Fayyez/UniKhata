@@ -18,8 +18,10 @@
 - Database Designer & Developer  
 - Email Sending Services
 - Logging Middleware
+- Graphics Designer
 
 ## Huzyefa Saqib
 - UI/UX Designer
 - Frontend Developer
 - Redux Storages
+- Integration
