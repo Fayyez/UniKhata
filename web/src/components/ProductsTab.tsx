@@ -120,7 +120,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ storeId, userId }) => {
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead>
           <tr>
-            <th className="px-4 py-2 text-gray-900 dark:text-white">ID</th>
+            {/* <th className="px-4 py-2 text-gray-900 dark:text-white">ID</th> */}
             <th className="px-4 py-2 text-gray-900 dark:text-white">Name</th>
             <th className="px-4 py-2 text-gray-900 dark:text-white">Brand</th>
             <th className="px-4 py-2 text-gray-900 dark:text-white">Stock</th>
@@ -133,7 +133,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ storeId, userId }) => {
         <tbody>
           {products.map(product => (
             <tr key={product._id.toString()}>
-              <td className="px-4 py-2 text-gray-900 dark:text-white">{product._id}</td>
+              {/* <td className="px-4 py-2 text-gray-900 dark:text-white">{product._id}</td> */}
               <td className="px-4 py-2 text-gray-900 dark:text-white">{product.name}</td>
               <td className="px-4 py-2 text-gray-900 dark:text-white">{product.brand}</td>
               <td className="px-4 py-2 text-gray-900 dark:text-white">{product.stockAmount}</td>

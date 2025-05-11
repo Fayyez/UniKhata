@@ -10,7 +10,6 @@ import type { RootState, AppDispatch } from '../store';
 import { checkLowStockProducts } from '../store/slices/productSlice';
 import UnauthorizedPage from "./UnauthorizedPage";
 import axiosInstance from '../utils/axios';
-import sendEmail from '../utils/mailer';
 
 const StorePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -81,7 +80,10 @@ const StorePage: React.FC = () => {
               <p>Best regards,<br>UniKhata Team</p>
             `;
 
-            sendEmail(user.email, `Low Stock Alert - ${currentStore.name}`, emailContent);
+            
+
+            // Send email directly
+            //await sendEmail(currentStore.owner, `Low Stock Alert - ${currentStore.name}`, emailContent);
           }
         } catch (error) {
           console.error('Failed to check low stock products:', error);
