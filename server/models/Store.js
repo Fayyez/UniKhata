@@ -5,7 +5,7 @@ const storeSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.String, required: true 
     },
     owner: { // store owner id
-        type: mongoose.Schema.Types.ObjectId, ref: 'User' 
+        type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true 
     },
     eCommerceIntegrations: [{ 
         type: mongoose.Schema.Types.ObjectId, ref: 'ECommerceIntegration' 
