@@ -71,6 +71,10 @@ const CreateStorePage: React.FC = () => {
     e.preventDefault();
     if (!formData.owner) {
       console.error('Owner ID is required');
+      setFormData(prev => ({
+        ...prev,
+        owner: user.id
+      }));
       return;
     }
     try {

@@ -7,9 +7,9 @@ export const getAllStores = async (req, res) => {
         const uid = req.query?.uid; 
         let stores;
         if (uid) {
-            if (isNaN(uid)) {
-                return res.status(400).json({ message: 'Invalid uid' });
-            }
+            // if (isNaN(uid)) {
+            //     return res.status(400).json({ message: 'Invalid uid' });
+            // }
             stores = await Store.find({ owner: uid, isDeleted: false });
         } else {
             stores = await Store.find({ isDeleted: false });
@@ -66,8 +66,8 @@ export const createStore = async (req, res) => {
         });
         const savedStore = await newStore.save();
         // Add store to user's stores array
-        user.stores.push(savedStore._id);
-        await user.save();
+        //user.stores.push(savedStore._id);
+        //await user.save();
         return res.status(201).json({ message: 'Store created successfully', store: savedStore });
     } catch (error) {
         return res.status(500).json({ message: 'Error creating store', error: error.message });

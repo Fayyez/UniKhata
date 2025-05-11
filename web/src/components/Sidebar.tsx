@@ -30,7 +30,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
     if (user?.id && !storesLoading && !hasAttemptedFetch.current && stores.length === 0) {
       console.log('Sidebar: Fetching stores for user:', user.id);
       hasAttemptedFetch.current = true;
-      //dispatch(fetchStores(user.id));
+      dispatch(fetchStores(user.id));
     }
   }, [user, storesLoading, stores.length, dispatch]);
 
