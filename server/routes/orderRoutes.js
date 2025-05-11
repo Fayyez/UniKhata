@@ -1,6 +1,6 @@
 import express from 'express';
 import { getOrders, getOrderById, getNewOrders, updateOrder, deleteOrder, changeOrderStatus } from '../controllers/orderController.js';
-
+import passport from 'passport';
 const router = express.Router();
 
 // Route Format:
@@ -16,11 +16,11 @@ const router = express.Router();
 // ✅ PATCH orders/:oid {order_fields} : Updates the order with id = oid (200).
 // ✅ DELETE orders/:oid {} : Soft deletes an order with id = oid (200).
 
-router.get('/', getOrders);
-router.get('/:oid', getOrderById);
-router.get('/new', getNewOrders);
-router.patch('/:oid', updateOrder);
-router.delete('/:oid', deleteOrder);
-router.post('/', changeOrderStatus);
+router.get('/', passport.authenticate('jwt', { session: false }), getOrders);
+router.get('/:oid', passport.authenticate('jwt', { session: false }), getOrderById);
+router.get('/new', passport.authenticate('jwt', { session: false }), getNewOrders);
+router.patch('/:oid', passport.authenticate('jwt', { session: false }), updateOrder);
+router.delete('/:oid', passport.authenticate('jwt', { session: false }), deleteOrder);
+router.post('/', passport.authenticate('jwt', { session: false }), changeOrderStatus);
 
 export default router;
