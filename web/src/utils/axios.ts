@@ -1,36 +1,44 @@
-import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError, AxiosHeaders } from 'axios';
+import axios from 'axios';
 
-interface CustomRequestConfig extends InternalAxiosRequestConfig {
-    _retry?: boolean;
-}
+const API_URL = 'http://localhost:4000/api';
 
-const api = axios.create({
-    baseURL: 'http://localhost:4000/api',
+const axiosInstance = axios.create({
+    baseURL: API_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
 });
 
-// Add a request interceptor
-api.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
+// Request interceptor
+axiosInstance.interceptors.request.use(
+    (config) => {
         const token = localStorage.getItem('accessToken');
+        console.log('Setting token in request:', token);
         if (token) {
-            config.headers = new AxiosHeaders({
-                ...config.headers,
-                Authorization: `Bearer ${token}`
-            });
+            config.headers.Authorization = `Bearer ${token}`;
+            console.log('Request headers:', config.headers);
         }
         return config;
     },
-    (error: AxiosError) => {
+    (error) => {
+        console.error('Request interceptor error:', error);
         return Promise.reject(error);
     }
 );
 
-// Add a response interceptor
-api.interceptors.response.use(
-    (response: AxiosResponse) => response,
-    async (error: AxiosError) => {
-        const originalRequest = error.config as CustomRequestConfig;
-        if (!originalRequest) return Promise.reject(error);
+// Response interceptor
+axiosInstance.interceptors.response.use(
+    (response) => {
+        console.log('Response received:', response.config.url, response.status);
+        return response;
+    },
+    async (error) => {
+        const originalRequest = error.config;
+        console.log('Response error:', {
+            url: originalRequest.url,
+            status: error.response?.status,
+            headers: originalRequest.headers
+        });
 
         // If the error is 401 and we haven't tried to refresh the token yet
         if (error.response?.status === 401 && !originalRequest._retry) {
@@ -38,23 +46,44 @@ api.interceptors.response.use(
 
             try {
                 const refreshToken = localStorage.getItem('refreshToken');
-                const response = await axios.post('http://localhost:4000/api/auth/refresh', {
-                    refreshToken,
+                if (!refreshToken) {
+                    throw new Error('No refresh token available');
+                }
+
+                // Create a new axios instance for the refresh request to avoid infinite loop
+                const response = await axios.post(`${API_URL}/auth/refresh`, {
+                    refreshToken: refreshToken
                 });
 
-                const { accessToken } = response.data;
+                const { accessToken, refreshToken: newRefreshToken } = response.data;
+
+                if (!accessToken) {
+                    throw new Error('No access token in refresh response');
+                }
+
+                // Store the new tokens
                 localStorage.setItem('accessToken', accessToken);
+                if (newRefreshToken) {
+                    localStorage.setItem('refreshToken', newRefreshToken);
+                }
+
+                // Update the authorization header for the original request
+                originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+
+                // Update the default authorization header for future requests
+                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+
+                console.log('Token refreshed, retrying request with new token');
+                console.log('New request headers:', originalRequest.headers);
 
                 // Retry the original request with the new token
-                originalRequest.headers = new AxiosHeaders({
-                    ...originalRequest.headers,
-                    Authorization: `Bearer ${accessToken}`
-                });
-                return api(originalRequest);
+                return axiosInstance(originalRequest);
             } catch (refreshError) {
-                // If refresh token fails, redirect to login
+                console.error('Token refresh failed:', refreshError);
+                // If refresh token fails, clear tokens and redirect to login
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('refreshToken');
+                delete axiosInstance.defaults.headers.common['Authorization'];
                 window.location.href = '/login';
                 return Promise.reject(refreshError);
             }
@@ -64,4 +93,4 @@ api.interceptors.response.use(
     }
 );
 
-export default api;
+export default axiosInstance;

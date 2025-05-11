@@ -58,8 +58,8 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ email, password: hashedPassword, name });
+    //const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ email, password, name });
     await newUser.save();
 
     const tokens = generateTokens(newUser);
@@ -90,6 +90,7 @@ router.get(
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
     // TODO: fetch user data from database instead of directly sending
+    console.log("user-info", req.user);
     res.json({
         message: 'User info fetched successfully',
         id: req.user._id,

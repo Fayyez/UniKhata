@@ -2,8 +2,12 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { getUserInfo } from "../store/slices/authSlice";
+import { fetchStores, deleteStore } from "../store/slices/storeSlice";
+import type { AppDispatch, RootState } from "../store";
 import UnauthorizedPage from "./UnauthorizedPage";
+import axiosInstance from "../utils/axios";
 
 interface UserInfo {
   id: string;
@@ -13,41 +17,27 @@ interface UserInfo {
 }
 
 interface Store {
-  id: string;
+  _id: number;
   name: string;
-  owner: string;
+  owner: number;
   coverImage?: string;
   color?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const DashboardPage: React.FC = () => {
-  const [stores, setStores] = useState<Store[]>([
-    {
-      id: "1",
-      name: "Main Store",
-      owner: "John Doe",
-      color: "bg-[#1967d2]",
-    },
-    {
-      id: "2",
-      name: "Branch Store",
-      owner: "Jane Smith",
-      color: "bg-[#1e8e3e]",
-    },
-    {
-      id: "3",
-      name: "Downtown Store",
-      owner: "Mike Johnson",
-      color: "bg-[#d93025]",
-    },
-  ]);
-
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const { user: userInfo, loading: authLoading, error: authError } = useSelector((state: RootState) => state.auth);
+  const { stores, loading: storesLoading, error: storesError } = useSelector((state: RootState) => state.store);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [deleteStoreId, setDeleteStoreId] = useState<number | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  console.log('Dashboard State:', { userInfo, authLoading, authError, isAuthorized, stores });
 
   const defaultColors = [
     "bg-[#1967d2]", // Blue
@@ -58,67 +48,73 @@ const DashboardPage: React.FC = () => {
   ];
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const accessToken = params.get('accessToken');
-    const refreshToken = params.get('refreshToken');
-
-    if (accessToken && refreshToken) {
-      // Store tokens in localStorage
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-      
-      // Remove tokens from URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-
-    // Check for tokens in localStorage
-    const storedAccessToken = localStorage.getItem('accessToken');
-    if (!storedAccessToken) {
-      setIsAuthorized(false);
-      return;
-    }
-
-    // Set default authorization header
-    axios.defaults.headers.common['Authorization'] = `Bearer ${storedAccessToken}`;
-
-    // Fetch user information
-    const fetchUserInfo = async () => {
+    const initializeAuth = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/auth/user-info');
-        setUserInfo(response.data);
+        // First check URL parameters for tokens (from Google login)
+        const params = new URLSearchParams(location.search);
+        const accessToken = params.get('accessToken');
+        const refreshToken = params.get('refreshToken');
+
+        console.log('Tokens from URL:', { accessToken, refreshToken });
+
+        if (accessToken && refreshToken) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+          console.log(axiosInstance.defaults.headers.common['Authorization']);
+        }
+
+        // Fetch user info using Redux thunk
+        console.log('Fetching user info...');
+        const result = await dispatch(getUserInfo()).unwrap();
+        console.log('User info result:', result);
         setIsAuthorized(true);
       } catch (err) {
-        setError('Failed to fetch user information');
-        console.error(err);
+        console.error('Auth error:', err);
         setIsAuthorized(false);
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
       }
     };
 
-    fetchUserInfo();
-  }, [navigate, location]);
+    initializeAuth();
+  }, [dispatch, location]);
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    delete axios.defaults.headers.common['Authorization'];
     navigate('/login');
   };
 
-  const handleDeleteStore = (id: string) => {
-    setStores((prev) => prev.filter((store) => store.id !== id));
+  const handleDeleteStore = async (id: number) => {
+    try {
+      await dispatch(deleteStore(id)).unwrap();
+      setIsDeleteModalOpen(false);
+      setDeleteStoreId(null);
+    } catch (error) {
+      console.error('Failed to delete store:', error);
+    }
+  };
+
+  const openDeleteModal = (storeId: number) => {
+    setDeleteStoreId(storeId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteStoreId(null);
+    setIsDeleteModalOpen(false);
   };
 
   if (isAuthorized === false) {
     return <UnauthorizedPage />;
   }
 
-  if (error) {
+  if (authError || storesError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="bg-white p-8 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-          <p className="text-gray-700">{error}</p>
+          <p className="text-gray-700">{authError || storesError}</p>
           <button
             onClick={() => navigate('/login')}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -130,7 +126,7 @@ const DashboardPage: React.FC = () => {
     );
   }
 
-  if (!userInfo) {
+  if (authLoading || storesLoading || !userInfo) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-xl">Loading...</div>
@@ -168,16 +164,37 @@ const DashboardPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-stretch">
+              {/* No Stores Message */}
+              {stores.length === 0 && (
+                <div className="col-span-full flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                  <div className="w-16 h-16 mb-4 text-gray-400 dark:text-gray-500">
+                    <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">No Stores Yet</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-4 text-center">
+                    Get started by creating your first store
+                  </p>
+                  <button
+                    onClick={() => navigate("/create-store")}
+                    className="px-4 py-2 bg-[#1a73e8] text-white rounded-lg hover:bg-[#1557b0] transition-colors"
+                  >
+                    Create Store
+                  </button>
+                </div>
+              )}
+
               {/* Store Cards */}
               {stores.map((store) => (
                 <div
-                  key={store.id}
+                  key={store._id}
                   className="relative rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col h-full bg-white dark:bg-gray-800 z-0"
                 >
-                  <Link to={`/store/${store.id}`}>
+                  <Link to={`/store/${store._id}`}>
                     <div
                       className={`h-28 ${
-                        store.color || defaultColors[0]
+                        defaultColors[0]
                       } relative p-6`}
                     >
                       <h2 className="text-xl font-medium text-white">
@@ -191,7 +208,7 @@ const DashboardPage: React.FC = () => {
                   <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 mt-auto">
                     <div className="flex justify-end space-x-2">
                       <button
-                        onClick={() => console.log("Edit store:", store.id)}
+                        onClick={() => console.log("Edit store:", store._id)}
                         className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#1a73e8] dark:hover:text-[#1a73e8] hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                       >
                         <svg
@@ -209,7 +226,7 @@ const DashboardPage: React.FC = () => {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDeleteStore(store.id)}
+                        onClick={() => openDeleteModal(store._id)}
                         className="p-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                       >
                         <svg
@@ -230,38 +247,70 @@ const DashboardPage: React.FC = () => {
                   </div>
                 </div>
               ))}
-              {/* Add Store Card */}
-              <div
-                onClick={() => navigate("/create-store")}
-                className="relative rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer flex flex-col h-full"
-              >
-                <div className="h-28 bg-white dark:bg-gray-800 relative p-6 flex flex-col items-center justify-center flex-1">
-                  <div className="w-12 h-12 rounded-full bg-[#1a73e8]/10 dark:bg-[#1a73e8]/20 flex items-center justify-center mb-2">
-                    <svg
-                      className="w-6 h-6 text-[#1a73e8]"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                      />
-                    </svg>
+
+              {/* Add Store Card - Only show if there are stores */}
+              {stores.length > 0 && (
+                <div
+                  onClick={() => navigate("/create-store")}
+                  className="relative rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer flex flex-col h-full"
+                >
+                  <div className="h-28 bg-white dark:bg-gray-800 relative p-6 flex flex-col items-center justify-center flex-1">
+                    <div className="w-12 h-12 rounded-full bg-[#1a73e8]/10 dark:bg-[#1a73e8]/20 flex items-center justify-center mb-2">
+                      <svg
+                        className="w-6 h-6 text-[#1a73e8]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        />
+                      </svg>
+                    </div>
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                      Add New Store
+                    </h2>
                   </div>
-                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                    Add New Store
-                  </h2>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && deleteStoreId !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Delete Store
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to delete this store? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={closeDeleteModal}
+                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteStore(deleteStoreId)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default DashboardPage;
+

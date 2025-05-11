@@ -15,6 +15,7 @@ export const getUserProfile = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
     try {
+        console.log('gggg', req.user);
         const userId = req.user?._id;
         if (!userId) return res.status(401).json({ message: 'Unauthorized' });
         const { name, email, avatar } = req.body;
@@ -43,9 +44,13 @@ export const changePassword = async (req, res) => {
         if (!oldPassword || !newPassword) return res.status(400).json({ message: 'Old and new password required' });
         const user = await User.findOne({ _id: userId, isDeleted: false });
         if (!user) return res.status(404).json({ message: 'User not found' });
-        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        //const isMatch = await bcrypt.compare(oldPassword, user.password);
+        const isMatch = oldPassword ===user.password;
+        console.log('isMatch', isMatch);
         if (!isMatch) return res.status(400).json({ message: 'Old password is incorrect' });
-        user.password = await bcrypt.hash(newPassword, 10);
+        //user.password = await bcrypt.hash(newPassword, 10);
+        console.log('newPassword', newPassword);
+        user.password = newPassword;
         await user.save();
         res.status(200).json({ message: 'Password updated successfully' });
     } catch (err) {
