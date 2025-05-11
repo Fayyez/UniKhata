@@ -4,7 +4,7 @@ import User from '../models/User.js';
 // GET /stores/ {uid?} : Returns all stores under a user or all stores in the database
 export const getAllStores = async (req, res) => {
     try {
-        const uid = req.body?.uid; 
+        const uid = req.query?.uid; 
         let stores;
         if (uid) {
             if (isNaN(uid)) {

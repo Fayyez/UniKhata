@@ -3,8 +3,8 @@ import Store from '../models/Store.js';
 
 export const getOrders = async (req, res) => {
     try {
-        const uid = req.body?.uid;
-        const sid = req.body?.sid; 
+        const uid = req.query?.uid;
+        const sid = req.query?.sid; 
         let orders;
         if (uid && sid) {
             orders = await Order.find({ addedBy: uid, store: sid });
@@ -39,16 +39,23 @@ export const getOrderById = async (req, res) => {
 
 export const getNewOrders = async (req, res) => {
     try {
-        const sid = req.body.sid;
+        const sid = req.query?.sid;
+        if (!sid) {
+            return res.status(400).json({ message: "Store ID is required" });
+        }
         const store = await Store.findById(sid);
         if (!store) {
             return res.status(404).json({ message: "Store not found" });
         }
         const integratedPlatforms = fetchEStores(store.eCommerceIntegrations);
-        for (const platform of integratedPlatforms) {
-            const orders = platform.getOrders();
-            const ordersObjects = orders.map(order => new Order(order));
-            await Order.insertMany(ordersObjects);
+        let ordersObjects = [];
+        for (let i = 0; i < integratedPlatforms.length; i++) {
+            // Fetch and store all products first
+            const platform = integratedPlatforms[i];
+            await platform.getAllProducts(user, store);
+            // Fetch and store all orders
+            const orders = await platform.getOrders(store, store.eCommerceIntegrations[i]);
+            ordersObjects = ordersObjects.concat(orders);
         }
         res.status(200).json({ message: "Orders fetched successfully", orders: ordersObjects });
     } catch (error) {
@@ -96,3 +103,77 @@ export const changeOrderStatus = async (req, res) => {
         res.status(500).json({ message: "Error updating order status", error: error.message });
     }
 };
+
+async function fetchEStores(eCommerceIntegrations) {
+    // Implementation of fetchEStores function
+}
+
+async function getAllProducts(user, store) {
+    try {
+        // Fetch products from dummy service
+        const response = await axios.get('http://localhost:PORT/products'); // Replace PORT with actual port
+        const products = response.data;
+
+        for (const prod of products) {
+            // Check if product already exists
+            const existing = await Product.findOne({ name: prod.name, store: store._id });
+            if (!existing) {
+                await Product.create({
+                    name: prod.name,
+                    price: prod.price,
+                    tag: prod.tag,
+                    description: prod.description,
+                    brand: prod.brand,
+                    stockAmount: prod.stockAmount,
+                    addedBy: user._id,
+                    store: store._id
+                });
+            }
+        }
+        return { success: true };
+    } catch (err) {
+        console.error('Error in getAllProducts:', err);
+        return { success: false, error: err.message };
+    }
+}
+
+async function getOrders(user, store, platform) {
+    try {
+        // Fetch orders from dummy service
+        const response = await axios.get('http://localhost:PORT/orders'); // Replace PORT with actual port
+        const orders = response.data;
+
+        const createdOrders = [];
+        for (const order of orders) {
+            // For each product in the order, find it in the local DB
+            const productEntries = [];
+            for (const prod of order.summary.products) {
+                const productDoc = await Product.findOne({ name: prod.name, store: store._id });
+                if (productDoc) {
+                    productEntries.push({
+                        product: productDoc._id,
+                        quantity: prod.quantity
+                    });
+                }
+            }
+
+            // Check if order already exists (by orderid)
+            const existingOrder = await Order.findOne({ orderid: order.id, store: store._id });
+            if (!existingOrder) {
+                const newOrder = await Order.create({
+                    productEntries,
+                    store: store._id,
+                    platform: platform._id,
+                    orderid: order.id,
+                    delivery_address: order.summary.deliveryAddress,
+                    subtotal: order.summary.totalSubtotal
+                });
+                createdOrders.push(newOrder);
+            }
+        }
+        return createdOrders;
+    } catch (err) {
+        console.error('Error in getOrders:', err);
+        return [];
+    }
+}
