@@ -168,7 +168,7 @@ const StorePage: React.FC = () => {
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
       />
       <div className="flex">
-        <Sidebar isOpen={isSidebarOpen} />
+        <Sidebar isOpen={isSidebarOpen} stores={stores} />
         
         <div className="flex-1 pt-16 transition-all duration-200">
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
