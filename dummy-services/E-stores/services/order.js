@@ -16,10 +16,6 @@ router.get("/:id", (req, res) => {
   // else convert to int and return only the order requested or else return error with appropriate status code
   if (req.params.id === "all") {
     res.json(orders);
-  } else if (req.params.id === "new") {
-    const order = generateRandomOrder();
-    saveOrderInOrderJson(order);
-    res.json(order);
   } else {
     try {
       const order = orders.find((o) => o.id === parseInt(req.params.id));

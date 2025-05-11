@@ -31,9 +31,13 @@ export const getAllProducts = async (req, res) => {
             }
             return res.status(200).json({ message: "Products fetched successfully", products: userStoreProducts });
         } else if (filtersExist) {
-            // TODO: implement filters
             return res.status(501).json({ message: "Filters are not supported yet" });
         } else {
+            try{
+                // TODO: create product in all the integrated stores as well
+            } catch(error) {
+                    //throw the error
+            }
             console.log("Fetching all products in the database");
             const allProducts = await Product.find({ isDeleted: false }); // fetch all products in the database
             return res.status(200).json({ message: "Products fetched successfully", products: allProducts });
@@ -72,6 +76,11 @@ export const createProduct = async (req, res) => {
     }
     
     try {
+        try{
+        // TODO: create product in all the integrated stores as well
+        } catch(error) { 
+            //throw the error
+        }
         const savedProduct = await product.save(); // save the product to the database
         console.log("Product created: ", savedProduct._id); // log the product id to the console
         return res.status(201).json({ message: "Product created successfully", product: savedProduct }); // return a success message and the product object

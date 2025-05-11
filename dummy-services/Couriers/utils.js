@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const { 
-    ORDERS_FILE, 
-    AGENTS_FILE, 
+const {
+    ORDERS_FILE,
+    AGENTS_FILE,
     LOGS_FILE,
     ORDER_STATUS,
     DELIVERY_TIME_ESTIMATES
