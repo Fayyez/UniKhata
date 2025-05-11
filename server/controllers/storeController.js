@@ -85,7 +85,7 @@ export const createStore = async (req, res) => {
             .catch(error => {
                 console.log("error");
                 throw error;
-            })  
+            })
         }).catch(error => {
             console.log("error");
             throw error;
