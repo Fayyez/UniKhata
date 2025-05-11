@@ -8,20 +8,29 @@ const productEntrySchema = new mongoose.Schema({
 const orderSchema = new mongoose.Schema({
     productEntries: [productEntrySchema], // entries of products in the order
     store: { // store id
-        type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true 
-    }, 
+        type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true
+    },
     platform:  { // eCommerce platform id
-        type: mongoose.Schema.Types.ObjectId, ref: 'ECommerceIntegration', required: true 
+        type: mongoose.Schema.Types.ObjectId, ref: 'ECommerceIntegration', required: true
+    },
+    orderid: {
+        type: String, unique: true, required: true
     },
     courier: { // courier id
-        type: mongoose.Schema.Types.ObjectId, ref: 'CourierIntegration' 
+        type: mongoose.Schema.Types.ObjectId, ref: 'CourierIntegration'
     },
     isDeleted: { // order is deleted or not
-        type: mongoose.Schema.Types.Boolean, default: false 
+        type: mongoose.Schema.Types.Boolean, default: false
     },
     status: { // order status
-        type: String, required: true, enum: ['pending', 'dispatched', 'delivered', 'cancelled']
+        type: String, enum: ['pending', 'dispatched', 'delivered', 'cancelled'], default: "pending"
     },
+    delivery_address: {
+        type: String, required: true
+    },
+    subtotal: {
+        type: Number
+    }
 }, { timestamps: true } // adds operational timestamps to the schema
 );
 

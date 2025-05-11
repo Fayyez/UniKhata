@@ -14,7 +14,7 @@ import {
     createEcommerceIntegration,
     updateEcommerceIntegration,
     deleteEcommerceIntegration,
-    
+
     // Courier Integration controllers
     getAllCourierIntegrations,
     getCourierIntegrationById,

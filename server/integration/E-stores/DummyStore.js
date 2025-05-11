@@ -1,6 +1,8 @@
 import ParentEStore from "./ParentEStore.js";
 import { DUMMY_STORE } from "../../utils/constants.js";
 import EcommerceIntegration from "../../models/EcommerceIntegration.js";
+import Product from '../../models/Product.js'
+import Order from '../../models/Order.js'
 
 class DummyStore extends ParentEStore {
     constructor(ecommerceIntegration) {
@@ -24,6 +26,10 @@ class DummyStore extends ParentEStore {
         console.log(`Creating product in ${this.title} with details:`, productDetails);
         // Implement actual API call here
         return { success: true, productId: "dummy-product-123" };
+    }
+
+    async getAllProducts(user, store) {
+        // TODO: getall the prodycts from the service and save in local database
     }
 
     async updateProduct(productId, updates) {
@@ -75,10 +81,7 @@ class DummyStore extends ParentEStore {
     async getOrders(filters) {
         console.log(`Getting orders from ${this.title} with filters:`, filters);
         // Implement actual API call here
-        return [
-            { id: "order-1", customer: "John Doe", total: 49.98, status: "PENDING" },
-            { id: "order-2", customer: "Jane Smith", total: 29.99, status: "SHIPPED" }
-        ];
+        // get all the order from the endpoint and then create Order objects
     }
 
     async getOrderDetails(orderId) {
