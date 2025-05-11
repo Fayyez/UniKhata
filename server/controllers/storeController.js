@@ -1,5 +1,7 @@
 import Store from '../models/Store.js';
 import User from '../models/User.js';
+import EcommerceIntegration from '../models/EcommerceIntegration.js';
+import CourierIntegration from '../models/CourierIntegration.js';
 
 // GET /stores/ {uid?} : Returns all stores under a user or all stores in the database
 export const getAllStores = async (req, res) => {
@@ -41,7 +43,7 @@ export const getStoreById = async (req, res) => {
 export const createStore = async (req, res) => {
     try {
         console.log('Creating store:', req.body);
-        const { name, eCommerceIntegrations, courierIntegrations } = req.body;
+        const { name } = req.body;
         console.log('Name:', name);
         if (!name) {
             return res.status(400).json({ message: 'Store name is required' });
@@ -55,7 +57,19 @@ export const createStore = async (req, res) => {
         const newStore = new Store({
             name,
             owner: req.user?._id,
+            eCommerceIntegrations: [],
+            courierIntegrations: []
         });
+
+        const ecom = new EcommerceIntegration({
+            store: newStore._id,
+            platform: "DUMMY_STORE",
+            email: "test@test.com",
+            apiEndpoint: "http://localhost:4001",
+            token: "test_token"
+        })
+        // set newStores 
+        newStore.eCommerceIntegrations.push(ecom._id);
         console.log('New store created:', newStore._id);
         newStore.save()
         .then(savedStore => {
