@@ -41,34 +41,34 @@ export const getStoreById = async (req, res) => {
 export const createStore = async (req, res) => {
     try {
         console.log('Creating store:', req.body);
-        const { name, owner, eCommerceIntegrations, courierIntegrations } = req.body;
+        const { name, eCommerceIntegrations, courierIntegrations } = req.body;
         console.log('Name:', name);
         if (!name) {
             return res.status(400).json({ message: 'Store name is required' });
         }
-        console.log('Name:', name);
-        if (!owner || isNaN(owner)) {
-            return res.status(400).json({ message: 'Valid owner id is required' });
-        }
-        console.log('Owner:', owner);
         // Optionally check if owner exists
-        console.log('Owner:', owner);
-        const user = await User.findOne({ _id: owner, isDeleted: false });
+        const user = await User.findOne({ _id: req.user?._id, isDeleted: false });
         if (!user) {
             return res.status(404).json({ message: 'Owner user not found' });
         }
         console.log('User found:', user);
         const newStore = new Store({
             name,
-            owner,
-            eCommerceIntegrations: eCommerceIntegrations || [],
-            courierIntegrations: courierIntegrations || [],
+            owner: req.user?._id,
         });
-        const savedStore = await newStore.save();
-        // Add store to user's stores array
-        user.stores.push(savedStore._id);
-        await user.save();
-        return res.status(201).json({ message: 'Store created successfully', store: savedStore });
+        console.log('New store created:', newStore._id);
+        newStore.save()
+        .then(savedStore => {
+            console.log("saved with success");
+            user.stores.push(savedStore._id);
+            console.log("added store to user");
+            user.save();
+            console.log("new store saved under user");
+        }).catch(error => {
+            console.log("error");
+            throw error;
+        })
+        return res.status(201).json({ message: 'Store created successfully', store: newStore });
     } catch (error) {
         return res.status(500).json({ message: 'Error creating store', error: error.message });
     }

@@ -58,7 +58,7 @@ export const fetchStores = createAsyncThunk(
 
 export const createStore = createAsyncThunk(
   'store/createStore',
-  async (storeData: { name: string; owner: number }, { rejectWithValue }) => {
+  async (storeData: { name: string; owner: string }, { rejectWithValue }) => {
     try {
       console.log('Creating store with data:', storeData);
       const response = await axiosInstance.post('/stores', storeData);

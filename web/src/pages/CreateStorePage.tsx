@@ -39,7 +39,7 @@ const CreateStorePage: React.FC = () => {
 
   const [formData, setFormData] = useState({
     name: '',
-    owner: user?.id ? Number(user.id) : 0,
+    owner: 'placeholder',
     eCommerceIntegrations: [] as Array<{
       title: string;
       platform: string;
@@ -61,22 +61,19 @@ const CreateStorePage: React.FC = () => {
     if (user?.id) {
       setFormData(prev => ({
         ...prev,
-        owner: Number(user.id)
+        owner: 'placeholder'
       }));
     }
   }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.owner) {
-      console.error('Owner ID is required');
-      return;
-    }
     try {
-      // Only send required fields to backend
+      // Send only the required fields to backend
       const storeData = {
         name: formData.name,
-        owner: formData.owner
+        eCommerceIntegrations: formData.eCommerceIntegrations,
+        courierIntegrations: formData.courierIntegrations
       };
       console.log('Creating store:', storeData);
       await dispatch(createStore(storeData)).unwrap();
