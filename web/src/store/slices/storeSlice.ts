@@ -26,10 +26,10 @@ const initialState: StoreState = {
 
 export const fetchStores = createAsyncThunk(
   'store/fetchStores',
-  async (_, { rejectWithValue }) => {
+  async (userId: number, { rejectWithValue }) => {
     try {
-      console.log('Fetching stores...');
-      const response = await axiosInstance.get('/stores');
+      console.log('Fetching stores for user:', userId);
+      const response = await axiosInstance.get(`/stores/?uid=${userId}`);
       console.log('Raw API Response:', response);
       console.log('Response Data:', response.data);
       console.log('Response Data Type:', typeof response.data);
@@ -58,7 +58,7 @@ export const fetchStores = createAsyncThunk(
 
 export const createStore = createAsyncThunk(
   'store/createStore',
-  async (storeData: { name: string; owner: number }, { rejectWithValue }) => {
+  async (storeData: { name: string; owner: string }, { rejectWithValue }) => {
     try {
       console.log('Creating store with data:', storeData);
       const response = await axiosInstance.post('/stores', storeData);

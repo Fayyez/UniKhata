@@ -16,6 +16,7 @@ const ProfilePage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useSelector((state: RootState) => state.auth);
+  const { stores } = useSelector((state: RootState) => state.store);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   
   const { profile, loading, error } = useSelector((state: RootState) => state.user);
@@ -174,7 +175,7 @@ const ProfilePage: React.FC = () => {
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
       />
       <div className="flex">
-        <Sidebar isOpen={isSidebarOpen} />
+        <Sidebar isOpen={isSidebarOpen} stores={stores} />
         
         <div className="flex-1 pt-16 transition-all duration-200">
           <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">

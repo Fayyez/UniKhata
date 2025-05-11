@@ -78,7 +78,7 @@ export const createProduct = createAsyncThunk<Product, { storeId: string; data: 
       // Ensure required fields are present and properly formatted
       const productData = {
         ...data,
-        store: Number(storeId),
+        store: storeId,
         price: Number(data.price),
         stockAmount: Number(data.stockAmount || 0),
         name: data.name?.trim(),

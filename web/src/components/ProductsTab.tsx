@@ -27,6 +27,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ storeId, userId }) => {
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("storeId", storeId);
     if (storeId) {
       dispatch(fetchProducts(storeId));
     }

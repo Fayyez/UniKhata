@@ -67,6 +67,14 @@ const DashboardPage: React.FC = () => {
         console.log('Fetching user info...');
         const result = await dispatch(getUserInfo()).unwrap();
         console.log('User info result:', result);
+        
+        // Only fetch stores if we have a user ID and stores are not already loaded
+        if (result.id && stores.length === 0) {
+          console.log('Fetching stores for user:', result.id);
+          await dispatch(fetchStores(result.id)).unwrap();
+          
+        }
+        
         setIsAuthorized(true);
       } catch (err) {
         console.error('Auth error:', err);
@@ -144,7 +152,7 @@ const DashboardPage: React.FC = () => {
         onLogout={handleLogout}
       />
       <div className="flex">
-        <Sidebar isOpen={isSidebarOpen} />
+        <Sidebar isOpen={isSidebarOpen} stores={stores} />
 
         <div className="flex-1 pt-16 transition-all duration-200">
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">

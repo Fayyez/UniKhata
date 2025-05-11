@@ -12,6 +12,7 @@ const CreateStorePage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error } = useSelector((state: RootState) => state.store);
   const { user, loading: authLoading } = useSelector((state: RootState) => state.auth);
+  const { stores } = useSelector((state: RootState) => state.store);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
@@ -39,7 +40,7 @@ const CreateStorePage: React.FC = () => {
 
   const [formData, setFormData] = useState({
     name: '',
-    owner: user?.id ? Number(user.id) : 0,
+    owner: 'placeholder',
     eCommerceIntegrations: [] as Array<{
       title: string;
       platform: string;
@@ -58,25 +59,24 @@ const CreateStorePage: React.FC = () => {
 
   // Update owner ID when user data changes
   useEffect(() => {
+    console.log("user", user);
     if (user?.id) {
       setFormData(prev => ({
         ...prev,
-        owner: Number(user.id)
+        owner: 'placeholder'
       }));
     }
   }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.owner) {
-      console.error('Owner ID is required');
-      return;
-    }
     try {
-      // Only send required fields to backend
+      // Send only the required fields to backend
       const storeData = {
         name: formData.name,
-        owner: formData.owner
+        owner: user?.id || '',
+        eCommerceIntegrations: formData.eCommerceIntegrations,
+        courierIntegrations: formData.courierIntegrations
       };
       console.log('Creating store:', storeData);
       await dispatch(createStore(storeData)).unwrap();
@@ -179,7 +179,7 @@ const CreateStorePage: React.FC = () => {
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
       />
       <div className="flex">
-        <Sidebar isOpen={isSidebarOpen} />
+        <Sidebar isOpen={isSidebarOpen} stores={stores} />
         
         <div className="flex-1 pt-16 transition-all duration-200">
           <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
