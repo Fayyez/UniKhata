@@ -5,6 +5,7 @@ import Sidebar from '../components/Sidebar';
 import OrdersTab from '../components/OrdersTab';
 import ProductsTab from '../components/ProductsTab';
 import OrdersAnalyticsTab from '../components/OrdersAnalyticsTab';
+import IntegrationTab from '../components/IntegrationTab';
 import Calculator from '../components/Calculator';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../store';
@@ -227,6 +228,8 @@ const StorePage: React.FC = () => {
                   <ProductsTab storeId={id} userId={user.id} />
                 ) : activeTab === 'analytics' ? (
                   <OrdersAnalyticsTab />
+                ) : activeTab === 'integration' ? (
+                  <IntegrationTab storeId={id} />
                 ) : activeTab === 'ledger' ? (
                   <Calculator />
                 ) : (
