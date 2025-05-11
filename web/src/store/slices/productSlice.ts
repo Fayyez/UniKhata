@@ -9,8 +9,8 @@ export interface Product {
   stockAmount: number;
   brand: string;
   image?: string;
-  store: number;
-  addedBy: number;
+  store: string;
+  addedBy: string;
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
@@ -23,8 +23,8 @@ export const ProductDefaults: Omit<Product, '_id' | 'createdAt' | 'updatedAt'> =
   stockAmount: 0,
   brand: '',
   image: '',
-  store: 0,
-  addedBy: 0,
+  store: '',
+  addedBy: '',
   isDeleted: false
 };
 
@@ -106,7 +106,7 @@ export const updateProduct = createAsyncThunk<Product, { storeId: string; produc
       // Ensure required fields are present and properly formatted
       const productData = {
         ...data,
-        store: Number(storeId),
+        store: storeId,
         price: Number(data.price),
         stockAmount: Number(data.stockAmount || 0),
         name: data.name?.trim(),

@@ -6,7 +6,7 @@ import type { Product } from '../store/slices/productSlice';
 
 interface ProductsTabProps {
   storeId: string | undefined;
-  userId: number | undefined;
+  userId: string | undefined;
 }
 
 const ProductsTab: React.FC<ProductsTabProps> = ({ storeId, userId }) => {
@@ -43,12 +43,20 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ storeId, userId }) => {
         await dispatch(updateProduct({ 
           storeId, 
           productId: currentProduct._id, 
-          data: { ...currentProduct, addedBy: userId } 
+          data: { 
+            ...currentProduct,
+            store: storeId,
+            addedBy: userId 
+          } 
         })).unwrap();
       } else {
         await dispatch(createProduct({ 
           storeId, 
-          data: { ...currentProduct, addedBy: userId } 
+          data: { 
+            ...currentProduct, 
+            store: storeId,
+            addedBy: userId 
+          } 
         })).unwrap();
       }
       setIsModalOpen(false);
