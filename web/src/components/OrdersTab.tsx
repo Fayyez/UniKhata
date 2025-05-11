@@ -5,8 +5,8 @@ import type { RootState, AppDispatch } from '../store';
 import type { Order } from '../store/slices/orderSlice';
 
 interface OrdersTabProps {
-  storeId: number | undefined;
-  userId: number | undefined;
+  storeId: string | undefined;
+  userId: string | undefined;
 }
 
 const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {

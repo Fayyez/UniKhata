@@ -303,7 +303,7 @@ const StorePage: React.FC = () => {
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                 {/* Content will be rendered here based on activeTab */}
                 {activeTab === 'orders' ? (
-                  <OrdersTab storeId={Number(id)} userId={user.id} />
+                  <OrdersTab storeId={id} userId={user.id} />
                 ) : activeTab === 'products' ? (
                   <ProductsTab storeId={id} userId={user.id} />
                 ) : activeTab === 'analytics' ? (
