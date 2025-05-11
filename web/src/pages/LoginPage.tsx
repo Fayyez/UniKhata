@@ -32,7 +32,13 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] dark:bg-gray-900">
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md w-full max-w-md">
+      <div className="w-full max-w-md flex flex-col items-center">
+        {/* Logo and Title Section */}
+        <div className="flex flex-row items-center justify-center mb-8">
+          <img src="/unikhata-favicon.svg" alt="UniKhata Logo" className="h-20 w-20 mr-4" />
+          <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white">UniKhata</h1>
+        </div>
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md w-full">
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">
           Login
         </h2>
