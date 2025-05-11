@@ -43,18 +43,19 @@ export const getOrderById = async (req, res) => {
 export const getNewOrders = async (req, res) => {
     try {
         const sid = req.body.sid;
-        const store = await Store.findById(sid);
+        const store = await Store.findById(sid).populate('eCommerceIntegrations');
         const user = await User.findById(req.user?._id)
         if (!store) {
             return res.status(404).json({ message: "Store not found" });
         }
         const integratedPlatforms = fetchEStores(store.eCommerceIntegrations);
         let ordersObjects = [];
-        for (const platform of integratedPlatforms) {
+        for (let i = 0; i < integratedPlatforms.length; i++) {
             // Fetch and store all products first
+            const platform = integratedPlatforms[i];
             await platform.getAllProducts(user, store);
             // Fetch and store all orders
-            const orders = await platform.getOrders(user, store, platform.ecommerceIntegration);
+            const orders = await platform.getOrders(store, store.eCommerceIntegrations[i]);
             ordersObjects = ordersObjects.concat(orders);
         }
         res.status(200).json({ message: "Orders fetched successfully", orders: ordersObjects });

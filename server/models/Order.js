@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+storeimport mongoose from "mongoose";
 
 const productEntrySchema = new mongoose.Schema({
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true }, // required to be filled
@@ -34,4 +34,6 @@ const orderSchema = new mongoose.Schema({
 }, { timestamps: true } // adds operational timestamps to the schema
 );
 
+// export the productEntrySchema
+export { productEntrySchema };
 export default mongoose.model('Order', orderSchema);

@@ -3,7 +3,7 @@ import { DUMMY_STORE } from "../../utils/constants.js";
 import EcommerceIntegration from "../../models/EcommerceIntegration.js";
 import Product from '../../models/Product.js'
 import Order from '../../models/Order.js'
-
+import { productEntrySchema } from "../../models/Order.js";
 class DummyStore extends ParentEStore {
     constructor(ecommerceIntegration) {
         super();
@@ -29,7 +29,41 @@ class DummyStore extends ParentEStore {
     }
 
     async getAllProducts(user, store) {
-        // TODO: getall the prodycts from the service and save in local database
+        try {
+            // Fetch products from dummy service
+            const product_endpoint = this.baseUrl + '/products';
+            const response = await axios.get(product_endpoint);
+            // for each product store that product if not found in the database
+            for (const prod of response.data) {
+                // find
+                // if not found then create a new product
+                const product_from_database = await Product.findOne({ name: prod.name, store: store._id });
+                if (!product_from_database) {
+                    console.log("creating new product in database");
+                    const newProduct = new Product({
+                        name:prod.name,
+                        price:prod.price,
+                        addedBy:user._id,
+                        store:store._id,
+                        tag:prod.tag,
+                        description:prod.description,
+                        brand:prod.brand,
+                        stockAmount:prod.stockAmount,
+                        thirdPartyProductTags:[{
+                            integration:this.ecommerceIntegration._id,
+                            thirdPartyProductId:prod.id
+                        }],
+                        isDeleted:false,
+                    })
+
+                    await newProduct.save();
+                }
+            }
+            return { success: true };
+        } catch (err) {
+            console.error('Error in getAllProducts:', err);
+            return { success: false, error: err.message };
+        }
     }
 
     async updateProduct(productId, updates) {
@@ -78,10 +112,84 @@ class DummyStore extends ParentEStore {
     }
 
     // Order Management
-    async getOrders(filters) {
+    async getOrders(store, ecomIntegrationObj) {
         console.log(`Getting orders from ${this.title} with filters:`, filters);
-        // Implement actual API call here
-        // get all the order from the endpoint and then create Order objects
+        const order_endpoint = this.baseUrl + '/orders';
+        const response = await axios.get(order_endpoint);
+        // for each order store that order if not found in the database
+        for (const order of response.data) {
+            // find the order by id in the databse
+            const order_in_db = await Order.findOne({ orderid: order.id });
+            if (!order_in_db) {
+                // create a new order in the databse
+                /*const productEntrySchema = new mongoose.Schema({
+                        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true }, // required to be filled
+                        quantity: { type: Number, required: true }, // required to be filled
+                    }, { _id: false });
+
+                const orderSchema = new mongoose.Schema({
+                    productEntries: [productEntrySchema], // entries of products in the order
+                    store: { // store id
+                        type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true
+                    },
+                    platform:  { // eCommerce platform id
+                        type: mongoose.Schema.Types.ObjectId, ref: 'ECommerceIntegration', required: true
+                    },
+                    orderid: {
+                        type: String, unique: true, required: true
+                    },
+                    courier: { // courier id
+                        type: mongoose.Schema.Types.ObjectId, ref: 'CourierIntegration'
+                    },
+                    isDeleted: { // order is deleted or not
+                        type: mongoose.Schema.Types.Boolean, default: false
+                    },
+                    status: { // order status
+                        type: String, enum: ['pending', 'dispatched', 'delivered', 'cancelled'], default: "pending"
+                    },
+                    delivery_address: {
+                        type: String, required: true
+                    },
+                    subtotal: {
+                        type: Number
+                    }
+                }, { timestamps: true } // adds operational timestamps to the schema
+                );
+                    */
+                const product_entries = order.summary.products.map( orderprod => {
+                    // search the product from the database and set id and value
+                    Product.findOne({ name: orderprod.name })
+                    .then(product => {
+                        return {
+                            product: product._id,
+                            quantity: orderprod.quantity
+                        }
+                    })
+                    .catch(err => {
+                        console.log("product not found in database");
+                        return null;
+                    })
+                });
+                // create a new order in the databse
+                const newOrder = new Order({
+                    orderid: order.id,
+                    store: store._id,
+                    productEntries: product_entries,
+                    platform: ecomIntegrationObj._id,
+                    courier: null,
+                    status: "pending",
+                    delivery_address: order.summary.deliveryAddress,
+                    subtotal: order.summary.totalSubtotal
+                })
+                newOrder.save()
+                .then(order => {
+                    console.log("new order created in database");
+                })
+                .catch(err => {
+                    console.log("error in creating new order in database");
+                })
+            }
+        }
     }
 
     async getOrderDetails(orderId) {
