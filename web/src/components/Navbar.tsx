@@ -40,7 +40,8 @@ const Navbar: React.FC<NavbarProps> = ({ userName, userEmail, userImage, onMenuC
           </div>
 
           <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <Link to="/" className="text-3xl font-bold text-gray-800 dark:text-white font-['Google Sans']">
+            <Link to="/" className="flex flex-row items-center text-3xl font-bold text-gray-800 dark:text-white font-['Google Sans']">
+              <img src="/unikhata-favicon.svg" alt="UniKhata Logo" className="h-10 w-10 mr-2" />
               UniKhata
             </Link>
           </div>

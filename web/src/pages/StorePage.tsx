@@ -1,15 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import OrdersTab from '../components/OrdersTab';
 import ProductsTab from '../components/ProductsTab';
 import OrdersAnalyticsTab from '../components/OrdersAnalyticsTab';
+import Calculator from '../components/Calculator';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../store';
 import { checkLowStockProducts, sendLowStockEmail } from '../store/slices/productSlice';
 import UnauthorizedPage from "./UnauthorizedPage";
-import axiosInstance from '../utils/axios';
 
 const StorePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,14 +18,6 @@ const StorePage: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('orders');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [ordersRange, setOrdersRange] = useState('Today');
-  const [isRangeDropdownOpen, setIsRangeDropdownOpen] = useState(false);
-  const rangeOptions = ['Today', 'Week', 'Month', 'Year', 'All time'];
-  const rangeBtnRef = useRef<HTMLButtonElement>(null);
-  const [dropdownPos, setDropdownPos] = useState<{top: number, left: number, width: number}>({top: 0, left: 0, width: 0});
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
-  const [activeQuick, setActiveQuick] = useState<string>('Today');
   const { user, loading: authLoading } = useSelector((state: RootState) => state.auth);
   const { stores } = useSelector((state: RootState) => state.store);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
@@ -48,17 +40,6 @@ const StorePage: React.FC = () => {
       navigate('/dashboard');
     }
   }, [id, currentStore, navigate, stores]);
-
-  useEffect(() => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
-    setStartDate(todayStr);
-    setEndDate(todayStr);
-    setActiveQuick('Today');
-  }, []);
 
   // Add low stock check on store initialization
   useEffect(() => {
@@ -97,68 +78,6 @@ const StorePage: React.FC = () => {
       checkLowStock();
     }
   }, [id, currentStore, dispatch]);
-
-  // Helper functions for quick-selects
-  const setToday = () => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
-    setStartDate(todayStr);
-    setEndDate(todayStr);
-    setActiveQuick('Today');
-  };
-  const setThisWeek = () => {
-    const today = new Date();
-    const day = today.getDay();
-    const diffToMonday = today.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
-    const monday = new Date(today.setDate(diffToMonday));
-    const yyyy = monday.getFullYear();
-    const mm = String(monday.getMonth() + 1).padStart(2, '0');
-    const dd = String(monday.getDate()).padStart(2, '0');
-    const mondayStr = `${yyyy}-${mm}-${dd}`;
-    const today2 = new Date();
-    const yyyy2 = today2.getFullYear();
-    const mm2 = String(today2.getMonth() + 1).padStart(2, '0');
-    const dd2 = String(today2.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy2}-${mm2}-${dd2}`;
-    setStartDate(mondayStr);
-    setEndDate(todayStr);
-    setActiveQuick('This Week');
-  };
-  const setThisMonth = () => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const firstDay = `${yyyy}-${mm}-01`;
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
-    setStartDate(firstDay);
-    setEndDate(todayStr);
-    setActiveQuick('This Month');
-  };
-  const setThisYear = () => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const firstDay = `${yyyy}-01-01`;
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
-    setStartDate(firstDay);
-    setEndDate(todayStr);
-    setActiveQuick('This Year');
-  };
-
-  // If user manually changes dates, clear quick selection
-  const handleStartDateChange = (val: string) => {
-    setStartDate(val);
-    setActiveQuick('');
-  };
-  const handleEndDateChange = (val: string) => {
-    setEndDate(val);
-    setActiveQuick('');
-  };
 
   const tabs = [
     { id: 'orders', label: 'Orders', icon: (
@@ -308,6 +227,8 @@ const StorePage: React.FC = () => {
                   <ProductsTab storeId={id} userId={user.id} />
                 ) : activeTab === 'analytics' ? (
                   <OrdersAnalyticsTab />
+                ) : activeTab === 'ledger' ? (
+                  <Calculator />
                 ) : (
                   <div className="text-center text-gray-500 dark:text-gray-400">
                     {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} content will be displayed here
