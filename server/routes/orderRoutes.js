@@ -17,7 +17,7 @@ const router = express.Router();
 // ✅ DELETE orders/:oid {} : Soft deletes an order with id = oid (200).
 
 router.get('/', passport.authenticate('jwt', { session: false }), getOrders);
-router.get('/new/', passport.authenticate('jwt', { session: false }), getNewOrders);
+router.get('/new', passport.authenticate('jwt', { session: false }), getNewOrders);
 router.get('/:oid', passport.authenticate('jwt', { session: false }), getOrderById);
 router.patch('/:oid', passport.authenticate('jwt', { session: false }), updateOrder);
 router.delete('/:oid', passport.authenticate('jwt', { session: false }), deleteOrder);

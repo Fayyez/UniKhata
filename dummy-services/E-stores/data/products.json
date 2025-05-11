@@ -1,6 +1,7 @@
 [
     {
         "name": "Echo Dot",
+        "id": "1234567890",
         "price": 49.99,
         "tag": "electronics",
         "description": "Smart speaker with Alexa voice control.",
@@ -9,6 +10,7 @@
     },
     {
         "name": "FitBand",
+        "id": "1234567891",
         "price": 29.99,
         "tag": "wearables",
         "description": "Lightweight fitness tracker with heart rate monitor.",
@@ -17,6 +19,7 @@
     },
     {
         "name": "SlimPen",
+        "id": "1234567892",
         "price": 19.99,
         "tag": "stationery",
         "description": "Ergonomic ballpoint pen with smooth ink flow.",
@@ -25,6 +28,7 @@
     },
     {
         "name": "QuickPan",
+        "id": "1234567893",
         "price": 34.99,
         "tag": "kitchen",
         "description": "Non-stick frying pan with heat-resistant handle.",
@@ -33,6 +37,7 @@
     },
     {
         "name": "FlexMat",
+        "id": "1234567894",
         "price": 24.99,
         "tag": "fitness",
         "description": "Durable yoga mat with non-slip surface.",
@@ -41,6 +46,7 @@
     },
     {
         "name": "GlowBulb",
+        "id": "1234567895",
         "price": 14.99,
         "tag": "home",
         "description": "Smart LED bulb with adjustable brightness and color.",
@@ -49,6 +55,7 @@
     },
     {
         "name": "GamePad",
+        "id": "1234567896",
         "price": 59.99,
         "tag": "gaming",
         "description": "Wireless game controller with vibration feedback.",
@@ -57,6 +64,7 @@
     },
     {
         "name": "SpeedHub",
+        "id": "1234567897",
         "price": 39.99,
         "tag": "computers",
         "description": "USB-C hub with HDMI, USB 3.0, and SD card slots.",
@@ -65,6 +73,7 @@
     },
     {
         "name": "ChillCup",
+        "id": "1234567898",
         "price": 12.99,
         "tag": "kitchen",
         "description": "Insulated cup that keeps drinks cold for hours.",
@@ -73,6 +82,7 @@
     },
     {
         "name": "SnapCam",
+        "id": "1234567899",
         "price": 89.99,
         "tag": "photography",
         "description": "Compact digital camera with HD video recording.",

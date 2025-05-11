@@ -1,9 +1,9 @@
 import Order from '../models/Order.js';
 import Store from '../models/Store.js';
-import User from '../models/User.js';
 import axios from 'axios';
 import Product from '../models/Product.js';
-
+import createEStoreObjects from '../utils/estoreFactory.js';
+import DummyStore from '../integration/E-stores/DummyStore.js'; 
 export const getOrders = async (req, res) => {
     try {
         const uid = req.query?.uid;
@@ -43,21 +43,32 @@ export const getOrderById = async (req, res) => {
 export const getNewOrders = async (req, res) => {
     try {
         const sid = req.query?.sid;
+        console.log("this is the sid for fetching new orders", sid);
         if (!sid) {
             return res.status(400).json({ message: "Store ID is required" });
         }
-        const store = await Store.findById(sid);
+        const store = await Store.findById(sid).populate('eCommerceIntegrations');
+        console.log("this is the store found from db for new order:", store._id);
         if (!store) {
             return res.status(404).json({ message: "Store not found" });
         }
-        const integratedPlatforms = fetchEStores(store.eCommerceIntegrations);
+
+        const integratedPlatforms = createEStoreObjects(store.eCommerceIntegrations);
+        //console.log("this is the integrated platforms", integratedPlatforms);
+        //console.log("this is the integrated platforms", integratedPlatforms);
         let ordersObjects = [];
         for (let i = 0; i < integratedPlatforms.length; i++) {
             // Fetch and store all products first
+            // print of integratedPlatforms[i]
+            console.log("iteration", integratedPlatforms[i] instanceof DummyStore);
             const platform = integratedPlatforms[i];
-            await platform.getAllProducts(user, store);
+            //console.log("this is the platform", platform);
+            await platform.getAllProducts(req.user, store, store.eCommerceIntegrations[i]);
+            console.log("got all products from", platform.title);
+
             // Fetch and store all orders
             const orders = await platform.getOrders(store, store.eCommerceIntegrations[i]);
+            console.log("got all orders from the ecom object");
             ordersObjects = ordersObjects.concat(orders);
         }
         res.status(200).json({ message: "Orders fetched successfully", orders: ordersObjects });
@@ -106,10 +117,6 @@ export const changeOrderStatus = async (req, res) => {
         res.status(500).json({ message: "Error updating order status", error: error.message });
     }
 };
-
-async function fetchEStores(eCommerceIntegrations) {
-    // Implementation of fetchEStores function
-}
 
 async function getAllProducts(user, store) {
     try {
