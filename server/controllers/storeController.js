@@ -78,6 +78,14 @@ export const createStore = async (req, res) => {
             console.log("added store to user");
             user.save();
             console.log("new store saved under user");
+            ecom.save()
+            .then(savedEcom => {
+                console.log("ecom saved with success");
+            })
+            .catch(error => {
+                console.log("error");
+                throw error;
+            })
         }).catch(error => {
             console.log("error");
             throw error;
