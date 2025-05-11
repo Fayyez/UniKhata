@@ -24,6 +24,7 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
   const [endDate, setEndDate] = useState<string>('');
   const [activeQuick, setActiveQuick] = useState<string>('Today');
   const [statusLoading, setStatusLoading] = useState<{ [key: string]: boolean }>({});
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     dispatch(fetchOrders({ uid: userId, sid: current_store_id }));
@@ -188,11 +189,45 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
     );
   };
 
+  // Filter orders based on search query
+  const filteredOrders = orders.filter(order => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      order._id.toString().includes(searchLower) ||
+      order.status.toLowerCase().includes(searchLower) ||
+      order.productEntries.some(entry => 
+        entry.product?.name?.toLowerCase().includes(searchLower) ||
+        entry.name?.toLowerCase().includes(searchLower)
+      ) ||
+      order.platform?.title?.toLowerCase().includes(searchLower) ||
+      order.platform?.platform?.toLowerCase().includes(searchLower) ||
+      order.courier?.name?.toLowerCase().includes(searchLower)
+    );
+  });
+
   if (loading) return <div className="text-gray-900 dark:text-white">Loading orders...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <>
+      {/* Search Bar */}
+      <div className="mb-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search orders by ID, status, product, platform, or courier..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-2 pl-10 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-[#1a73e8] focus:border-[#1a73e8]"
+          />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
       {/* Stats Bar */}
       {/* <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0 justify-between mb-6 overflow-x-auto">
         <div className="flex items-center min-w-[220px] mr-8 relative">
@@ -310,7 +345,7 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <tr key={order._id}>
                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">#{order.orderid || order._id}</td>
                 <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
