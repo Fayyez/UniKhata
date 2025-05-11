@@ -74,6 +74,7 @@ const CreateStorePage: React.FC = () => {
       // Send only the required fields to backend
       const storeData = {
         name: formData.name,
+        owner: user?.id || '',
         eCommerceIntegrations: formData.eCommerceIntegrations,
         courierIntegrations: formData.courierIntegrations
       };
