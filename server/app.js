@@ -46,6 +46,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/integrations', integrationRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/mail', mailRoutes);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`\x1b[32m>> Server Running On Port '${PORT}'\x1b[0m`));
