@@ -1,8 +1,8 @@
 import Product from '../models/Product.js';
 
 export const getAllProducts = async (req, res) => {
-    const uid = req.body?.uid;
-    const sid = req.body?.sid; 
+    const uid = req.query?.uid;
+    const sid = req.query?.sid; 
     const filters = req.query;
 
     const filtersExist = Object.keys(filters).length > 0; // check if filters exist
