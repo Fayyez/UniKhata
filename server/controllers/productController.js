@@ -62,6 +62,7 @@ export const getProductById = async (req, res) => {
 };
 
 export const createProduct = async (req, res) => {
+    console.log("req.body", req.body);
     const newProduct = req.body;
     console.log("newProduct", newProduct);
     const product = new Product(newProduct); // create a new product object with the provided data

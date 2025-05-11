@@ -26,10 +26,14 @@ const initialState: StoreState = {
 
 export const fetchStores = createAsyncThunk(
   'store/fetchStores',
-  async (_, { rejectWithValue }) => {
+  async (userId: number, { rejectWithValue }) => {
     try {
-      console.log('Fetching stores...');
-      const response = await axiosInstance.get('/stores');
+      console.log('Fetching stores for user:', userId);
+      const response = await axiosInstance.request({
+        url: '/stores/',
+        method: 'get',
+        data: { uid: userId }
+      });
       console.log('Raw API Response:', response);
       console.log('Response Data:', response.data);
       console.log('Response Data Type:', typeof response.data);

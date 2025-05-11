@@ -24,12 +24,24 @@ const StorePage: React.FC = () => {
   const [endDate, setEndDate] = useState<string>('');
   const [activeQuick, setActiveQuick] = useState<string>('Today');
   const { user, loading: authLoading } = useSelector((state: RootState) => state.auth);
+  const { stores } = useSelector((state: RootState) => state.store);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+
+  // Find the current store
+  const currentStore = stores.find(store => store._id === Number(id));
 
   useEffect(() => {
     if (user) setIsAuthorized(true);
     else if (!authLoading) setIsAuthorized(false);
   }, [user, authLoading]);
+
+  // Redirect if store doesn't exist
+  useEffect(() => {
+    if (!id || !currentStore) {
+      console.error('Store not found or invalid ID:', id);
+      navigate('/dashboard');
+    }
+  }, [id, currentStore, navigate]);
 
   useEffect(() => {
     const today = new Date();
@@ -141,10 +153,18 @@ const StorePage: React.FC = () => {
     return <UnauthorizedPage />;
   }
 
+  if (!currentStore) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-gray-900">
       <Navbar 
-        userName="John Doe"
+        userName={user?.name || "User"}
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
       />
       <div className="flex">
@@ -157,7 +177,7 @@ const StorePage: React.FC = () => {
               <div className="px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                   <div className="flex items-center">
-                    <h1 className="text-xl font-medium text-gray-900 dark:text-white">Main Store</h1>
+                    <h1 className="text-xl font-medium text-gray-900 dark:text-white">{currentStore.name}</h1>
                   </div>
                 </div>
               </div>
@@ -239,7 +259,7 @@ const StorePage: React.FC = () => {
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                 {/* Content will be rendered here based on activeTab */}
                 {activeTab === 'orders' ? (
-                  <OrdersTab />
+                  <OrdersTab storeId={Number(id)} userId={user.id} />
                 ) : activeTab === 'products' ? (
                   <ProductsTab storeId={id} userId={user.id} />
                 ) : activeTab === 'analytics' ? (

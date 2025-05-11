@@ -67,6 +67,13 @@ const DashboardPage: React.FC = () => {
         console.log('Fetching user info...');
         const result = await dispatch(getUserInfo()).unwrap();
         console.log('User info result:', result);
+        
+        // Fetch stores for the user
+        if (result.id) {
+          console.log('Fetching stores for user:', result.id);
+          await dispatch(fetchStores(result.id)).unwrap();
+        }
+        
         setIsAuthorized(true);
       } catch (err) {
         console.error('Auth error:', err);
