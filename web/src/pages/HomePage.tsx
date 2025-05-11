@@ -173,9 +173,9 @@ const HomePage: React.FC = () => {
             </div>
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Fayyez</h3>
-              <p className="text-[#1a73e8] mb-3 font-medium">Code Whisperer & Deadline Wizard</p>
+              <p className="text-[#1a73e8] mb-3 font-medium">The Fallen Architect</p>
               <p className="text-gray-600 dark:text-gray-300">
-                Leading our architectural design with a vision that combines technical excellence and business value. Also doubles as our impromptu Project Manager when deadlines approach.
+                Leading our architectural design with a 3/20 vision that combines technical excellence, business value and crippling anxiety. Also doubles as our impromptu Project Manager when deadlines approach (still cant meet them).
               </p>
             </div>
           </div>
@@ -186,9 +186,9 @@ const HomePage: React.FC = () => {
             </div>
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Eehab</h3>
-              <p className="text-[#1a73e8] mb-3 font-medium">SQL Sorcerer & Backend Ninja</p>
+              <p className="text-[#1a73e8] mb-3 font-medium">Backend Beru</p>
               <p className="text-gray-600 dark:text-gray-300">
-                Our backend maestro with an uncanny ability to make servers bend to his will. If there's data that needs moving, storing, or processing, Eehab has already written the API for it.
+                Our backend maestro with an uncanny ability to make servers and aunties alike bend to his will. If there's data that needs moving, storing, or processing, Eehab is your guy hes a real phupho of databases.
               </p>
             </div>
           </div>
@@ -199,9 +199,9 @@ const HomePage: React.FC = () => {
             </div>
             <div className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Huzyefa</h3>
-              <p className="text-[#1a73e8] mb-3 font-medium">CSS Therapist & React Whisperer</p>
+              <p className="text-[#1a73e8] mb-3 font-medium">Admiral UI</p>
               <p className="text-gray-600 dark:text-gray-300">
-                The UI virtuoso who translates complex functionality into intuitive user experiences. Armed with React and an eye for design, Huzyefa ensures UniKhata is as beautiful as it is functional.
+                The UI virtuoso who translates complex functionality into intuitive user experiences. Armed with React and an eye for complicating simple designs, Huzyefa ensures UniKhata is as beautiful as it is functional.
               </p>
             </div>
           </div>
@@ -227,9 +227,9 @@ const HomePage: React.FC = () => {
               </div>
               <div className="w-2/3 p-6">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Our Amazing TA</h3>
-                <p className="text-[#1a73e8] mb-3 font-medium">Deadline Bender & Error Whisperer</p>
+                <p className="text-[#1a73e8] mb-3 font-medium">Deadline Bender & Salvager</p>
                 <p className="text-gray-600 dark:text-gray-300">
-                  For being incredibly understanding about our last-minute changes and always providing constructive feedback that helped shape UniKhata into what it is today.
+                  For being incredibly understanding about our last-minute changes in project related matters, and for the miracle of extending the deadlines. May thee bless us with more extensions forever
                 </p>
               </div>
             </div>

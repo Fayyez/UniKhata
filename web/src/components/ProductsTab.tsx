@@ -25,6 +25,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ storeId, userId }) => {
   const [modalError, setModalError] = useState<string | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     console.log("storeId", storeId);
@@ -103,6 +104,17 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ storeId, userId }) => {
     }
   };
 
+  // Filter products based on search query
+  const filteredProducts = products.filter(product => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      product.name.toLowerCase().includes(searchLower) ||
+      product.description.toLowerCase().includes(searchLower) ||
+      product.brand.toLowerCase().includes(searchLower) ||
+      product._id.toString().includes(searchLower)
+    );
+  });
+
   if (loading) return <div>Loading products...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
 
@@ -116,6 +128,23 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ storeId, userId }) => {
         >
           Add Product
         </button>
+      </div>
+      {/* Search Bar */}
+      <div className="mb-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search products by name, description, brand, or ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-2 pl-10 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-[#1a73e8] focus:border-[#1a73e8]"
+          />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
       </div>
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead>
@@ -131,7 +160,7 @@ const ProductsTab: React.FC<ProductsTabProps> = ({ storeId, userId }) => {
           </tr>
         </thead>
         <tbody>
-          {products.map(product => (
+          {filteredProducts.map(product => (
             <tr key={product._id.toString()}>
               {/* <td className="px-4 py-2 text-gray-900 dark:text-white">{product._id}</td> */}
               <td className="px-4 py-2 text-gray-900 dark:text-white">{product.name}</td>
