@@ -45,4 +45,7 @@ productSchema.index({ store: 1, name: 1 }, { unique: true });
 productSchema.index({ store: 1, _id: 1 }, { unique: true }); // corrected 'pid' to '_id'
 productSchema.index({ store: 1, isDeleted: 1 }); // added index for isDeleted
 
+// export the third party tag scheme as a mongoose model
+export const ThirdPartyTag = mongoose.model('ThirdPartyTag', thirdPartyTagSchema);
+
 export default mongoose.model('Product', productSchema);

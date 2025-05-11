@@ -10,6 +10,10 @@ interface OrdersTabProps {
 }
 
 const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
+  // current url == "base/store/:storeId"
+  const current_store_id = window.location.pathname.split('/').pop();
+  console.log("this is the storeId", current_store_id);
+
   const dispatch = useDispatch<AppDispatch>();
   const { orders, loading, error } = useSelector((state: RootState) => state.order);
   const [ordersRange, setOrdersRange] = useState('Today');
@@ -22,8 +26,8 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
   const [statusLoading, setStatusLoading] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
-    dispatch(fetchOrders({ uid: userId, sid: storeId }));
-  }, [dispatch, storeId, userId]);
+    dispatch(fetchOrders({ uid: userId, sid: current_store_id }));
+  }, [dispatch, current_store_id, userId]);
 
   useEffect(() => {
     const today = new Date();
@@ -129,6 +133,59 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
+  };
+
+  // Add these buttons for your status changes
+  const DispatchButton = ({ orderId }: { orderId: number }) => {
+    const dispatch = useDispatch<AppDispatch>();
+    const [loading, setLoading] = useState(false);
+    
+    const handleDispatch = async () => {
+      setLoading(true);
+      try {
+        await dispatch(changeStatus({ oid: orderId, status: 'processing' })).unwrap();
+      } catch (error) {
+        console.error('Failed to dispatch order:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    return (
+      <button 
+        onClick={handleDispatch}
+        disabled={loading}
+        className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50"
+      >
+        {loading ? 'Processing...' : 'Dispatch'}
+      </button>
+    );
+  };
+
+  const CancelButton = ({ orderId }: { orderId: number }) => {
+    const dispatch = useDispatch<AppDispatch>();
+    const [loading, setLoading] = useState(false);
+    
+    const handleCancel = async () => {
+      setLoading(true);
+      try {
+        await dispatch(changeStatus({ oid: orderId, status: 'cancelled' })).unwrap();
+      } catch (error) {
+        console.error('Failed to cancel order:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    return (
+      <button 
+        onClick={handleCancel}
+        disabled={loading}
+        className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 disabled:opacity-50 ml-2"
+      >
+        {loading ? 'Cancelling...' : 'Cancel'}
+      </button>
+    );
   };
 
   if (loading) return <div className="text-gray-900 dark:text-white">Loading orders...</div>;
@@ -244,36 +301,33 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
           <thead>
             <tr>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Order ID</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Products</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Store</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Summary</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Platform</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Courier</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created At</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {orders.map((order) => (
               <tr key={order._id}>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">#{order._id}</td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">#{order.orderid || order._id}</td>
                 <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
                   <div className="space-y-1">
                     {order.productEntries.map((entry, index) => (
                       <div key={index} className="flex justify-between items-center">
-                        <span className="text-gray-900 dark:text-white">Product #{entry.product}</span>
+                        <span className="text-gray-900 dark:text-white">{entry.product?.name || `${entry.name}`}</span>
                         <span className="text-gray-500 dark:text-gray-400 ml-2">x{entry.quantity}</span>
                       </div>
                     ))}
                   </div>
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  Store #{order.store}
+                  {order.platform?.title || order.platform?.platform || `${order.platform}`}
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  Platform #{order.platform}
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  {order.courier ? `Courier #${order.courier}` : '-'}
+                  {order.courier ? (order.courier?.name || `Courier #${order.courier}`) : '-'}
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-sm">
                   <button
@@ -286,6 +340,10 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {new Date(order.createdAt).toLocaleDateString()}
+                </td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm flex">
+                  {order.status === 'pending' && <DispatchButton orderId={order._id} />}
+                  {order.status !== 'completed' && <CancelButton orderId={order._id} />}
                 </td>
               </tr>
             ))}
