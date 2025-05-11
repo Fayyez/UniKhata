@@ -15,6 +15,7 @@ import orderRoutes from './routes/orderRoutes.js';
 import integrationRoutes from './routes/integrationRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import logger from './utils/logger.js';
+import mailRoutes from './routes/mailRoutes.js';
 
 const app = express();
 app.use(cors());
