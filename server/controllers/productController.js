@@ -72,7 +72,7 @@ export const createProduct = async (req, res) => {
     const product = new Product(newProduct); // create a new product object with the provided data
     console.log("newProduct", newProduct);
     
-    if (!newProduct.name || newProduct.price == null || isNaN(newProduct.price) || newProduct.price < 0) {
+    if (!newProduct.name || newProduct.price == null || newProduct.price < 0) {
         return res.status(400).json({ message: "Invalid product data" });
     }
     

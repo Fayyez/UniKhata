@@ -7,9 +7,9 @@ export const getAllStores = async (req, res) => {
         const uid = req.query?.uid; 
         let stores;
         if (uid) {
-            // if (isNaN(uid)) {
-            //     return res.status(400).json({ message: 'Invalid uid' });
-            // }
+            if (isNaN(uid)) {
+                return res.status(400).json({ message: 'Invalid uid' });
+            }
             stores = await Store.find({ owner: uid, isDeleted: false });
         } else {
             stores = await Store.find({ isDeleted: false });
