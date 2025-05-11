@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../store';
@@ -22,13 +22,17 @@ interface Store {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
-  const { stores } = useSelector((state: RootState) => state.store);
+  const { stores, loading: storesLoading } = useSelector((state: RootState) => state.store);
+  const { user } = useSelector((state: RootState) => state.auth);
+  const hasAttemptedFetch = useRef(false);
 
   useEffect(() => {
-    if (stores.length === 0) {
-      dispatch(fetchStores());
+    if (user?.id && !storesLoading && !hasAttemptedFetch.current && stores.length === 0) {
+      console.log('Sidebar: Fetching stores for user:', user.id);
+      hasAttemptedFetch.current = true;
+      //dispatch(fetchStores(user.id));
     }
-  }, [dispatch, stores.length]);
+  }, [user, storesLoading, stores.length, dispatch]);
 
   const menuItems = [
     {

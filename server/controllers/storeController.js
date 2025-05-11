@@ -7,9 +7,9 @@ export const getAllStores = async (req, res) => {
         const uid = req.query?.uid; 
         let stores;
         if (uid) {
-            if (isNaN(uid)) {
-                return res.status(400).json({ message: 'Invalid uid' });
-            }
+            // if (isNaN(uid)) {
+            //     return res.status(400).json({ message: 'Invalid uid' });
+            // }
             stores = await Store.find({ owner: uid, isDeleted: false });
         } else {
             stores = await Store.find({ isDeleted: false });
@@ -24,7 +24,7 @@ export const getAllStores = async (req, res) => {
 export const getStoreById = async (req, res) => {
     try {
         const sid = Number(req.params.sid);
-        if (!sid || isNaN(sid)) {
+        if (!sid) {
             return res.status(400).json({ message: 'Invalid store id' });
         }
         const store = await Store.findOne({ _id: sid, isDeleted: false });
@@ -47,7 +47,7 @@ export const createStore = async (req, res) => {
             return res.status(400).json({ message: 'Store name is required' });
         }
         console.log('Name:', name);
-        if (!owner || isNaN(owner)) {
+        if (!owner) {
             return res.status(400).json({ message: 'Valid owner id is required' });
         }
         console.log('Owner:', owner);
@@ -78,7 +78,7 @@ export const createStore = async (req, res) => {
 export const updateStore = async (req, res) => {
     try {
         const sid = Number(req.params.sid);
-        if (!sid || isNaN(sid)) {
+        if (!sid) {
             return res.status(400).json({ message: 'Invalid store id' });
         }
         const updateData = req.body;
@@ -102,7 +102,7 @@ export const updateStore = async (req, res) => {
 export const deleteStore = async (req, res) => {
     try {
         const sid = Number(req.params.sid);
-        if (!sid || isNaN(sid)) {
+        if (!sid) {
             return res.status(400).json({ message: 'Invalid store id' });
         }
         const store = await Store.findOneAndUpdate(

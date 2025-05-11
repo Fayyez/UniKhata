@@ -1,4 +1,4 @@
-storeimport mongoose from "mongoose";
+import mongoose from "mongoose";
 
 const productEntrySchema = new mongoose.Schema({
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true }, // required to be filled

@@ -68,10 +68,11 @@ const DashboardPage: React.FC = () => {
         const result = await dispatch(getUserInfo()).unwrap();
         console.log('User info result:', result);
         
-        // Fetch stores for the user
-        if (result.id) {
+        // Only fetch stores if we have a user ID and stores are not already loaded
+        if (result.id && stores.length === 0) {
           console.log('Fetching stores for user:', result.id);
-          await dispatch(fetchStores(result.id)).unwrap();
+          //await dispatch(fetchStores(result.id)).unwrap();
+          
         }
         
         setIsAuthorized(true);

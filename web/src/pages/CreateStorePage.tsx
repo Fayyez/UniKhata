@@ -39,7 +39,7 @@ const CreateStorePage: React.FC = () => {
 
   const [formData, setFormData] = useState({
     name: '',
-    owner: user?.id ? Number(user.id) : 0,
+    owner: user?.id ? user.id : "0",
     eCommerceIntegrations: [] as Array<{
       title: string;
       platform: string;
@@ -58,10 +58,11 @@ const CreateStorePage: React.FC = () => {
 
   // Update owner ID when user data changes
   useEffect(() => {
+    console.log("user", user);
     if (user?.id) {
       setFormData(prev => ({
         ...prev,
-        owner: Number(user.id)
+        owner: user.id
       }));
     }
   }, [user]);
