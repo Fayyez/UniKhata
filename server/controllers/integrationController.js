@@ -18,7 +18,7 @@ export const getAllEcommerceIntegrations = async (req, res) => {
         const filter = { };
         
         // Apply filters if provided
-        if (store && !isNaN(store)) filter.store = parseInt(store);
+        if (store) filter.store = store;
         if (platform) filter.platform = platform;
         if (title) filter.title = { $regex: title, $options: 'i' }; // Case-insensitive search
         
@@ -39,7 +39,7 @@ export const getAllEcommerceIntegrations = async (req, res) => {
 export const getEcommerceIntegrationById = async (req, res) => {
     try {
         const id = req.params.id;
-        if (!id || isNaN(id)) {
+        if (!id) {
             return res.status(400).json({ message: 'Invalid integration ID' });
         }
         
@@ -66,7 +66,7 @@ export const createEcommerceIntegration = async (req, res) => {
         const { store, title, platform, email, apiEndpoint, token } = req.body;
         
         // Validate required fields
-        if (!store || isNaN(store)) {
+        if (!store) {
             return res.status(400).json({ message: 'Valid store ID is required' });
         }
         
@@ -111,7 +111,7 @@ export const createEcommerceIntegration = async (req, res) => {
 export const updateEcommerceIntegration = async (req, res) => {
     try {
         const id = req.params.id;
-        if (!id || isNaN(id)) {
+        if (!id) {
             return res.status(400).json({ message: 'Invalid integration ID' });
         }
         
@@ -145,7 +145,7 @@ export const updateEcommerceIntegration = async (req, res) => {
 export const deleteEcommerceIntegration = async (req, res) => {
     try {
         const id = req.params.id;
-        if (!id || isNaN(id)) {
+        if (!id) {
             return res.status(400).json({ message: 'Invalid integration ID' });
         }
         
@@ -184,7 +184,7 @@ export const getAllCourierIntegrations = async (req, res) => {
         const filter = { };
         
         // Apply filters if provided
-        if (store && !isNaN(store)) filter.store = parseInt(store);
+        if (store) filter.store = store;
         if (courierName) filter.courierName = courierName;
         if (title) filter.title = { $regex: title, $options: 'i' }; // Case-insensitive search
         
@@ -205,7 +205,7 @@ export const getAllCourierIntegrations = async (req, res) => {
 export const getCourierIntegrationById = async (req, res) => {
     try {
         const id = req.params.id;
-        if (!id || isNaN(id)) {
+        if (!id) {
             return res.status(400).json({ message: 'Invalid integration ID' });
         }
         
@@ -232,7 +232,7 @@ export const createCourierIntegration = async (req, res) => {
         const { store, title, courierName, emailOrCredential, apiEndpoint, token } = req.body;
         
         // Validate required fields
-        if (!store || isNaN(store)) {
+        if (!store) {
             return res.status(400).json({ message: 'Valid store ID is required' });
         }
         
@@ -277,7 +277,7 @@ export const createCourierIntegration = async (req, res) => {
 export const updateCourierIntegration = async (req, res) => {
     try {
         const id = req.params.id;
-        if (!id || isNaN(id)) {
+        if (!id) {
             return res.status(400).json({ message: 'Invalid integration ID' });
         }
         
@@ -311,7 +311,7 @@ export const updateCourierIntegration = async (req, res) => {
 export const deleteCourierIntegration = async (req, res) => {
     try {
         const id = req.params.id;
-        if (!id || isNaN(id)) {
+        if (!id) {
             return res.status(400).json({ message: 'Invalid integration ID' });
         }
         
