@@ -1,6 +1,6 @@
 import Order from '../models/Order.js';
 import Store from '../models/Store.js';
-import User from '../models/user.js'
+import User from '../models/User.js';
 import axios from 'axios';
 import Product from '../models/Product.js';
 
@@ -135,46 +135,5 @@ async function getAllProducts(user, store) {
     } catch (err) {
         console.error('Error in getAllProducts:', err);
         return { success: false, error: err.message };
-    }
-}
-
-async function getOrders(user, store, platform) {
-    try {
-        // Fetch orders from dummy service
-        const response = await axios.get('http://localhost:PORT/orders'); // Replace PORT with actual port
-        const orders = response.data;
-
-        const createdOrders = [];
-        for (const order of orders) {
-            // For each product in the order, find it in the local DB
-            const productEntries = [];
-            for (const prod of order.summary.products) {
-                const productDoc = await Product.findOne({ name: prod.name, store: store._id });
-                if (productDoc) {
-                    productEntries.push({
-                        product: productDoc._id,
-                        quantity: prod.quantity
-                    });
-                }
-            }
-
-            // Check if order already exists (by orderid)
-            const existingOrder = await Order.findOne({ orderid: order.id, store: store._id });
-            if (!existingOrder) {
-                const newOrder = await Order.create({
-                    productEntries,
-                    store: store._id,
-                    platform: platform._id,
-                    orderid: order.id,
-                    delivery_address: order.summary.deliveryAddress,
-                    subtotal: order.summary.totalSubtotal
-                });
-                createdOrders.push(newOrder);
-            }
-        }
-        return createdOrders;
-    } catch (err) {
-        console.error('Error in getOrders:', err);
-        return [];
     }
 }

@@ -8,18 +8,16 @@ export interface OrderItem {
 }
 
 export interface Order {
-  _id: string;
-  store: string;
-  items: OrderItem[];
-  totalAmount: number;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled';
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  shippingAddress: string;
-  paymentMethod: 'cash' | 'card';
-  paymentStatus: 'pending' | 'paid' | 'failed';
+  _id: number;
+  productEntries: Array<{
+    product: number;
+    quantity: number;
+  }>;
+  store: number;
+  platform: number;
+  courier?: number;
   isDeleted: boolean;
+  status: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -110,6 +108,21 @@ export const deleteOrder = createAsyncThunk<{ storeId: string; orderId: string }
   }
 );
 
+export const changeStatus = createAsyncThunk<Order, { oid: string; status: string }, { rejectValue: string }>(
+  'order/changeStatus',
+  async ({ oid, status }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post(`/orders/`, { oid, status });
+      if (!response.data.order) {
+        return rejectWithValue('Failed to update order status');
+      }
+      return response.data.order;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update order status');
+    }
+  }
+);
+
 const orderSlice = createSlice({
   name: 'order',
   initialState,
@@ -186,7 +199,7 @@ const orderSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteOrder.fulfilled, (state, action: PayloadAction<{ storeId: string; orderId: string }>) => {
+      .addCase(deleteOrder.fulfilled, (state, action: PayloadAction<{ storeId: number; orderId: number }>) => {
         state.loading = false;
         state.orders = state.orders.filter(order => order._id !== action.payload.orderId);
         if (state.currentOrder?._id === action.payload.orderId) {
@@ -196,6 +209,25 @@ const orderSlice = createSlice({
       .addCase(deleteOrder.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to delete order';
+      })
+      // Change Status
+      .addCase(changeStatus.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(changeStatus.fulfilled, (state, action: PayloadAction<Order>) => {
+        state.loading = false;
+        const index = state.orders.findIndex(order => order._id === action.payload._id);
+        if (index !== -1) {
+          state.orders[index] = action.payload;
+        }
+        if (state.currentOrder?._id === action.payload._id) {
+          state.currentOrder = action.payload;
+        }
+      })
+      .addCase(changeStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to update order status';
       });
   }
 });

@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOrders } from '../store/slices/orderSlice';
+import { fetchOrders, changeStatus } from '../store/slices/orderSlice';
 import type { RootState, AppDispatch } from '../store';
 import type { Order } from '../store/slices/orderSlice';
 
 interface OrdersTabProps {
-  storeId: string | undefined;
-  userId: string | undefined;
+  storeId: number | undefined;
+  userId: number | undefined;
 }
 
 const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
@@ -19,6 +19,7 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [activeQuick, setActiveQuick] = useState<string>('Today');
+  const [statusLoading, setStatusLoading] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     dispatch(fetchOrders({ uid: userId, sid: storeId }));
@@ -97,13 +98,46 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
     setActiveQuick('');
   };
 
+  const getNextStatus = (currentStatus: string): string => {
+    const statusFlow = ['pending', 'processing', 'completed', 'cancelled'];
+    const currentIndex = statusFlow.indexOf(currentStatus);
+    return statusFlow[(currentIndex + 1) % statusFlow.length];
+  };
+
+  const handleStatusClick = async (orderId: number, currentStatus: string) => {
+    const nextStatus = getNextStatus(currentStatus);
+    setStatusLoading(prev => ({ ...prev, [orderId]: true }));
+    try {
+      await dispatch(changeStatus({ oid: orderId, status: nextStatus })).unwrap();
+    } catch (error) {
+      console.error('Failed to update order status:', error);
+    } finally {
+      setStatusLoading(prev => ({ ...prev, [orderId]: false }));
+    }
+  };
+
+  const getStatusStyles = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'processing':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'pending':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    }
+  };
+
   if (loading) return <div className="text-gray-900 dark:text-white">Loading orders...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <>
       {/* Stats Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0 justify-between mb-6 overflow-x-auto">
+      {/* <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0 justify-between mb-6 overflow-x-auto">
         <div className="flex items-center min-w-[220px] mr-8 relative">
           <svg className="w-6 h-6 text-gray-700 dark:text-gray-200 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -203,18 +237,18 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
             {orders.filter(order => order.status === 'completed').length}
           </span>
         </div>
-      </div>
+      </div> */}
       {/* Orders Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead>
             <tr>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Order ID</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customer</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Items</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Products</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Store</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Platform</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Courier</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Payment</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created At</th>
             </tr>
           </thead>
@@ -222,53 +256,33 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
             {orders.map((order) => (
               <tr key={order._id}>
                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">#{order._id}</td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  <div className="flex flex-col">
-                    <span>{order.customerName}</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">{order.customerEmail}</span>
-                  </div>
-                </td>
                 <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
                   <div className="space-y-1">
-                    {order.items.map((item, index) => (
-                      <div key={index} className="flex justify-between">
-                        <span>{item.product}</span>
-                        <span className="text-gray-500 dark:text-gray-400">x{item.quantity}</span>
+                    {order.productEntries.map((entry, index) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <span className="text-gray-900 dark:text-white">Product #{entry.product}</span>
+                        <span className="text-gray-500 dark:text-gray-400 ml-2">x{entry.quantity}</span>
                       </div>
                     ))}
                   </div>
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  ${order.totalAmount.toFixed(2)}
+                  Store #{order.store}
+                </td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  Platform #{order.platform}
+                </td>
+                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  {order.courier ? `Courier #${order.courier}` : '-'}
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-sm">
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
-                    order.status === 'completed'
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                      : order.status === 'processing'
-                      ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                      : order.status === 'pending'
-                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                  }`}>
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                  </span>
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm">
-                  <div className="flex flex-col">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
-                      order.paymentStatus === 'paid'
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : order.paymentStatus === 'pending'
-                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                    }`}>
-                      {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {order.paymentMethod.charAt(0).toUpperCase() + order.paymentMethod.slice(1)}
-                    </span>
-                  </div>
+                  <button
+                    onClick={() => handleStatusClick(order._id, order.status)}
+                    disabled={statusLoading[order._id]}
+                    className={`inline-block px-2 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors ${getStatusStyles(order.status)} hover:opacity-80 disabled:opacity-50`}
+                  >
+                    {statusLoading[order._id] ? 'Updating...' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  </button>
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {new Date(order.createdAt).toLocaleDateString()}
