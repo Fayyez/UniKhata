@@ -6,8 +6,8 @@ app.use(express.json());
 
 // Import modular routes
 const orderRoutes = require("./services/order");
-const productRoutes = require("./routes/products");
-const paymentRoutes = require("./routes/payments");
+const productRoutes = require("./services/products");
+//const paymentRoutes = require("./routes/payments");
 
 // Use routes
 app.use("/orders", orderRoutes);
