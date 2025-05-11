@@ -119,3 +119,15 @@ export const deleteProduct = async (req, res) => {
         return res.status(500).json({ message: "Error deleting product", error }); // return an error message and the error object
     }
 };
+
+export const checkProductStocks = async (req, res) => {
+    try {
+        const storeId = req.params.sid;
+        const products = await Product.find({ store: storeId, isDeleted: false });
+        const productsWithLowStocks = products.filter(product => product.stockAmount <= 5);
+        return res.status(200).json({ message: "Products with low stocks fetched successfully", products: productsWithLowStocks });
+    } catch (error) {
+        console.error("Error checking product stocks: ", error); 
+        return res.status(500).json({ message: "Error checking product stocks", error }); 
+    }
+}
