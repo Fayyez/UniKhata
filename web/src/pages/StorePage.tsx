@@ -27,8 +27,8 @@ const StorePage: React.FC = () => {
   const { stores } = useSelector((state: RootState) => state.store);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
-  // Find the current store
-  const currentStore = stores.find(store => store._id === Number(id));
+  // Find the current store - convert both IDs to strings for comparison
+  const currentStore = stores.find(store => String(store._id) === id);
 
   useEffect(() => {
     if (user) setIsAuthorized(true);
@@ -37,11 +37,14 @@ const StorePage: React.FC = () => {
 
   // Redirect if store doesn't exist
   useEffect(() => {
+    console.log("currentStore", currentStore);
+    console.log("id", id);
+    console.log("stores", stores);
     if (!id || !currentStore) {
       console.error('Store not found or invalid ID:', id);
       navigate('/dashboard');
     }
-  }, [id, currentStore, navigate]);
+  }, [id, currentStore, navigate, stores]);
 
   useEffect(() => {
     const today = new Date();
