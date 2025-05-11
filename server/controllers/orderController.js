@@ -111,11 +111,11 @@ async function fetchEStores(eCommerceIntegrations) {
     // Implementation of fetchEStores function
 }
 
-// async function getAllProducts(user, store) {
-//     try {
-//         // Fetch products from dummy service
-//         const response = await axios.get('http://localhost:PORT/products'); // Replace PORT with actual port
-//         const products = response.data;
+async function getAllProducts(user, store) {
+    try {
+        // Fetch products from dummy service
+        const response = await axios.get('http://localhost:PORT/products'); // Replace PORT with actual port
+        const products = response.data;
 
         for (const prod of products) {
             // Check if product already exists
