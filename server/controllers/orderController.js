@@ -206,3 +206,69 @@ export const dispatchOrder = async (req, res) => {
         res.status(500).json({ message: "Error dispatching order", error: error.message });
     }
 };
+
+// Get analytics for orders: total orders, total sales, top 3 products by quantity sold
+export const getOrderAnalytics = async (req, res) => {
+    try {
+        const sid = req.params?.sid;
+        if (!sid) {
+            return res.status(400).json({ message: "Store ID is required" });
+        }
+        // Fetch all orders for the store (excluding deleted)
+        const orders = await Order.find({ store: sid, isDeleted: false });
+        const totalOrders = orders.length;
+        let totalSales = 0;
+        const productSalesMap = new Map(); // productId -> { name, sold, sales }
+        const productQuantityMap = new Map(); // productId -> total quantity
+
+        // First, accumulate sold quantity for each product
+        for (const order of orders) {
+            totalSales += order.subtotal || 0;
+            for (const entry of order.productEntries) {
+                if (!entry.product) continue;
+                const pid = entry.product.toString();
+                if (!productSalesMap.has(pid)) {
+                    productSalesMap.set(pid, {
+                        productId: pid,
+                        name: entry.name,
+                        sold: 0,
+                        sales: 0,
+                    });
+                }
+                const prodStats = productSalesMap.get(pid);
+                prodStats.sold += entry.quantity;
+                // Track total quantity for price calculation
+                productQuantityMap.set(pid, (productQuantityMap.get(pid) || 0) + entry.quantity);
+            }
+        }
+
+        // Fetch product prices for all involved products
+        const allProductIds = Array.from(productSalesMap.keys());
+        const Product = (await import('../models/Product.js')).default;
+        const products = await Product.find({ _id: { $in: allProductIds } });
+        const priceMap = new Map(); // productId -> price
+        for (const prod of products) {
+            priceMap.set(prod._id.toString(), prod.price);
+        }
+
+        // Calculate sales for each product
+        for (const [pid, prodStats] of productSalesMap.entries()) {
+            const price = priceMap.get(pid);
+            const quantity = productQuantityMap.get(pid) || 0;
+            prodStats.sales = typeof price === 'number' ? price * quantity : 0;
+        }
+
+        // Get top 3 products by sold
+        const topProducts = Array.from(productSalesMap.values())
+            .sort((a, b) => b.sold - a.sold)
+            .slice(0, 3);
+
+        res.status(200).json({
+            totalOrders,
+            totalSales,
+            topProducts,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching order analytics", error: error.message });
+    }
+};

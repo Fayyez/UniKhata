@@ -198,7 +198,7 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
-    <>
+    <div className="w-full max-w-full">
       {/* Search Bar */}
       <div className="mb-4">
         <div className="relative">
@@ -320,56 +320,62 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
         </div>
       </div> */}
       {/* Orders Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead>
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Order ID</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Summary</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Platform</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Courier</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created At</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {filteredOrders.map((order) => (
-              <tr key={order._id}>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">#{order.orderid || order._id}</td>
-                <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
-                  <div className="space-y-1">
-                    {order.productEntries.map((entry, index) => (
-                      <div key={index} className="flex justify-between items-center">
-                        <span className="text-gray-900 dark:text-white">{entry.product?.name || `${entry.name}`}</span>
-                        <span className="text-gray-500 dark:text-gray-400 ml-2">x{entry.quantity}</span>
-                      </div>
-                    ))}
-                  </div>
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  {order.platform?.title || order.platform?.platform || `${order.platform}`}
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  {order.courier ? (order.courier?.name || `DUMMY_COURIER`) : '-'}
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm">
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusStyles(order.status)}`}>
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                  </span>
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  {new Date(order.createdAt).toLocaleDateString()}
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm">
-                  <ActionButtons order={order} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="w-full overflow-hidden">
+        <div className="overflow-x-auto">
+          <div className="inline-block min-w-full align-middle">
+            <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-800">
+                  <tr>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Order ID</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Summary</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">From</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Courier</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Created At</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredOrders.map((order) => (
+                    <tr key={order._id}>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">#{order.orderid || order._id}</td>
+                      <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
+                        <div className="space-y-1">
+                          {order.productEntries.map((entry, index) => (
+                            <div key={index} className="flex justify-between items-center">
+                              <span className="text-gray-900 dark:text-white">{entry.product?.name || `${entry.name}`}</span>
+                              <span className="text-gray-500 dark:text-gray-400 ml-2">x{entry.quantity}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {order.platform?.title || order.platform?.platform || `${order.platform}`}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {order.courier ? (order.courier?.name || `DUMMY_COURIER`) : '-'}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm">
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusStyles(order.status)}`}>
+                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm">
+                        <ActionButtons order={order} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

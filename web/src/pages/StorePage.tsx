@@ -16,7 +16,7 @@ const StorePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const [activeTab, setActiveTab] = useState('orders');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, loading: authLoading } = useSelector((state: RootState) => state.auth);
@@ -25,6 +25,21 @@ const StorePage: React.FC = () => {
 
   // Find the current store - convert both IDs to strings for comparison
   const currentStore = stores.find(store => String(store._id) === id);
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    navigate('/login');
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (user) setIsAuthorized(true);
@@ -130,9 +145,10 @@ const StorePage: React.FC = () => {
       <Navbar 
         userName={user?.name || "User"}
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        onLogout={handleLogout}
       />
       <div className="flex">
-        <Sidebar isOpen={isSidebarOpen} stores={stores} />
+        <Sidebar isOpen={isSidebarOpen} stores={stores as any} />
         
         <div className="flex-1 pt-16 transition-all duration-200">
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -227,9 +243,9 @@ const StorePage: React.FC = () => {
                 ) : activeTab === 'products' ? (
                   <ProductsTab storeId={id} userId={user.id} />
                 ) : activeTab === 'analytics' ? (
-                  <OrdersAnalyticsTab />
+                  <OrdersAnalyticsTab storeId={id || ''} />
                 ) : activeTab === 'integration' ? (
-                  <IntegrationTab storeId={id} />
+                  <IntegrationTab storeId={id || ''} />
                 ) : activeTab === 'ledger' ? (
                   <Calculator />
                 ) : (
