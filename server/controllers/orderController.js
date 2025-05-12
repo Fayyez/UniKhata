@@ -4,6 +4,7 @@ import axios from 'axios';
 import Product from '../models/Product.js';
 import createEStoreObjects from '../utils/estoreFactory.js';
 import DummyStore from '../integration/E-stores/DummyStore.js'; 
+
 export const getOrders = async (req, res) => {
     try {
         const uid = req.user?._id;
@@ -147,3 +148,68 @@ async function getAllProducts(user, store) {
         return { success: false, error: err.message };
     }
 }
+
+export const dispatchOrder = async (req, res) => {
+    try {
+        const { oid, sid } = req.body;
+        const user = req.user;
+
+        if (!oid || !sid) {
+            return res.status(400).json({ message: "Order ID and Store ID are required" });
+        }
+
+        // Fetch the order from database
+        const order = await Order.findById(oid);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        if (order.status !== 'processing') {
+            return res.status(400).json({ message: "Order must be in processing status to be dispatched" });
+        }
+
+        // Fetch the store and populate courier integrations
+        const store = await Store.findById(sid).populate('courierIntegrations');
+        if (!store) {
+            return res.status(404).json({ message: "Store not found" });
+        }
+
+        if (!store.courierIntegrations || store.courierIntegrations.length === 0) {
+            return res.status(400).json({ message: "No courier integrations found for this store" });
+        }
+
+        // Import the courier factory function
+        const createCourierObjects = (await import('../utils/courierFactory.js')).default;
+        
+        // Create courier objects using the factory
+        const courierObjects = createCourierObjects(store.courierIntegrations);
+        
+        if (courierObjects.length === 0) {
+            return res.status(400).json({ message: "Failed to create courier objects" });
+        }
+        
+        // For simplicity, use the first courier integration (in a real app, you might let the user select one)
+        const courier = courierObjects[0];
+        
+        // Dispatch the order using the courier
+        const dispatchResult = await courier.dispatch(order);
+        
+        if (!dispatchResult.success) {
+            return res.status(500).json({ message: "Failed to dispatch order", error: dispatchResult.message });
+        }
+        
+        // Update the order status to 'dispatched' or similar
+        order.status = 'dispatched';
+        order.courier = store.courierIntegrations[0]._id; // Set the courier used
+        await order.save();
+        
+        res.status(200).json({ 
+            message: "Order dispatched successfully", 
+            order: order, 
+            dispatchDetails: dispatchResult 
+        });
+    } catch (error) {
+        console.error("Error dispatching order:", error);
+        res.status(500).json({ message: "Error dispatching order", error: error.message });
+    }
+};

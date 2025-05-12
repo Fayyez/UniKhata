@@ -23,22 +23,18 @@ class DummyCourier extends ParentCourier {
     }
 
     // Implement the required methods from ParentCourier here
+    
+    /**
+     * Dispatches an order using the courier service
+     * @param {Object} order - The order object to dispatch
+     * @returns {Promise<Object>} - Response from the courier service
+     */
+    async dispatch(order) {
+        // TODO: Implement order dispatch functionality for the dummy courier service
+        // This should communicate with the courier API to arrange pickup and delivery
+        console.log(`Attempting to dispatch order ${order._id} via ${this.title}`);
+        return { success: true, message: "Order dispatched successfully" };
+    }
 }
 
 export default DummyCourier;
-
-
-// testing
-// create a dummy courier integration object
-// const dummyCourierIntegration = new CourierIntegration({
-//     store: "dummyStoreId",
-//     title: "Dummy Courier",
-//     courierName: "xyz",
-//     emailOrCredential: "dummyEmail",
-//     apiEndpoint: "https://dummyapi.com",
-//     token: "dummyToken"
-// });
-
-// // create a DummyCourier object
-// const dummyCourier = new DummyCourier(dummyCourierIntegration);
-// console.log(dummyCourier); // should log the DummyCourier object with the properties set from the dummyCourierIntegration object
