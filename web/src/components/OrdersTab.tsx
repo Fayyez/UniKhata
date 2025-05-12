@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOrders, changeStatus } from '../store/slices/orderSlice';
+import { fetchOrders, changeStatus, dispatchOrder } from '../store/slices/orderSlice';
 import type { RootState, AppDispatch } from '../store';
 import type { Order } from '../store/slices/orderSlice';
 
@@ -103,12 +103,24 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
     setActiveQuick('');
   };
 
-  const handleStatusChange = async (orderId: number, newStatus: string) => {
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
     setStatusLoading(prev => ({ ...prev, [orderId]: true }));
     try {
       await dispatch(changeStatus({ oid: orderId, status: newStatus })).unwrap();
     } catch (error) {
       console.error('Failed to update order status:', error);
+    } finally {
+      setStatusLoading(prev => ({ ...prev, [orderId]: false }));
+    }
+  };
+
+  const handleProcessOrder = async (orderId: string) => {
+    setStatusLoading(prev => ({ ...prev, [orderId]: true }));
+    try {
+      // Then dispatch the order
+      await dispatch(dispatchOrder({ oid: orderId, sid: storeId || '' })).unwrap();
+    } catch (error) {
+      console.error('Failed to process order:', error);
     } finally {
       setStatusLoading(prev => ({ ...prev, [orderId]: false }));
     }
@@ -137,11 +149,11 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
       <div className="flex gap-2">
         {order.status === 'pending' && (
           <button 
-            onClick={() => handleStatusChange(order._id, 'processing')}
+            onClick={() => handleProcessOrder(order._id)}
             disabled={loading}
             className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? 'Processing...' : 'Process Order'}
+            {loading ? 'Dispatching...' : 'Dispatch Order'}
           </button>
         )}
         {order.status === 'processing' && (
