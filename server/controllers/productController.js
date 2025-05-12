@@ -3,13 +3,10 @@ import Product from '../models/Product.js';
 export const getAllProducts = async (req, res) => {
     const uid = req.query?.uid;
     const sid = req.query?.sid; 
-    const filters = req.query;
+    // const filters = req.query;
 
-    const filtersExist = Object.keys(filters).length > 0; // check if filters exist
-
-    if ((uid && !Number.isInteger(uid)) || (sid && !Number.isInteger(sid))) {
-        return res.status(400).json({ message: "Invalid uid or sid" });
-    }
+    // const filtersExist = Object.keys(filters).length > 0; // check if filters exist
+    const filtersExist = false;
 
     try {
         if (uid && !sid && !filtersExist) { // if there's only uid
@@ -93,8 +90,10 @@ export const createProduct = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
     const productId = req.params.pid; // get the product id from the url
+    console.log("productId", productId);
     try {
         const product = await Product.findByIdAndUpdate(productId, req.body, { new: true, runValidators: true }); // ensure productId is used as is and validators are run
+        console.log("product", product);
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
         }
@@ -120,3 +119,15 @@ export const deleteProduct = async (req, res) => {
         return res.status(500).json({ message: "Error deleting product", error }); // return an error message and the error object
     }
 };
+
+export const checkProductStocks = async (req, res) => {
+    try {
+        const storeId = req.params.sid;
+        const products = await Product.find({ store: storeId, isDeleted: false });
+        const productsWithLowStocks = products.filter(product => product.stockAmount <= 5);
+        return res.status(200).json({ message: "Products with low stocks fetched successfully", products: productsWithLowStocks });
+    } catch (error) {
+        console.error("Error checking product stocks: ", error); 
+        return res.status(500).json({ message: "Error checking product stocks", error }); 
+    }
+}

@@ -1,15 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOrders, changeStatus } from '../store/slices/orderSlice';
+import { fetchOrders, changeStatus, dispatchOrder } from '../store/slices/orderSlice';
 import type { RootState, AppDispatch } from '../store';
 import type { Order } from '../store/slices/orderSlice';
 
 interface OrdersTabProps {
-  storeId: number | undefined;
-  userId: number | undefined;
+  storeId: string | undefined;
+  userId: string | undefined;
 }
 
 const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
+  // current url == "base/store/:storeId"
+  const current_store_id = window.location.pathname.split('/').pop();
+  console.log("this is the storeId", current_store_id);
+
   const dispatch = useDispatch<AppDispatch>();
   const { orders, loading, error } = useSelector((state: RootState) => state.order);
   const [ordersRange, setOrdersRange] = useState('Today');
@@ -20,10 +24,11 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
   const [endDate, setEndDate] = useState<string>('');
   const [activeQuick, setActiveQuick] = useState<string>('Today');
   const [statusLoading, setStatusLoading] = useState<{ [key: string]: boolean }>({});
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    dispatch(fetchOrders({ uid: userId, sid: storeId }));
-  }, [dispatch, storeId, userId]);
+    dispatch(fetchOrders({ uid: userId, sid: current_store_id }));
+  }, [dispatch, current_store_id, userId]);
 
   useEffect(() => {
     const today = new Date();
@@ -98,19 +103,24 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
     setActiveQuick('');
   };
 
-  const getNextStatus = (currentStatus: string): string => {
-    const statusFlow = ['pending', 'processing', 'completed', 'cancelled'];
-    const currentIndex = statusFlow.indexOf(currentStatus);
-    return statusFlow[(currentIndex + 1) % statusFlow.length];
-  };
-
-  const handleStatusClick = async (orderId: number, currentStatus: string) => {
-    const nextStatus = getNextStatus(currentStatus);
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
     setStatusLoading(prev => ({ ...prev, [orderId]: true }));
     try {
-      await dispatch(changeStatus({ oid: orderId, status: nextStatus })).unwrap();
+      await dispatch(changeStatus({ oid: orderId, status: newStatus })).unwrap();
     } catch (error) {
       console.error('Failed to update order status:', error);
+    } finally {
+      setStatusLoading(prev => ({ ...prev, [orderId]: false }));
+    }
+  };
+
+  const handleProcessOrder = async (orderId: string) => {
+    setStatusLoading(prev => ({ ...prev, [orderId]: true }));
+    try {
+      // Then dispatch the order
+      await dispatch(dispatchOrder({ oid: orderId, sid: storeId || '' })).unwrap();
+    } catch (error) {
+      console.error('Failed to process order:', error);
     } finally {
       setStatusLoading(prev => ({ ...prev, [orderId]: false }));
     }
@@ -131,11 +141,82 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
     }
   };
 
+  // Update the action buttons
+  const ActionButtons = ({ order }: { order: Order }) => {
+    const [loading, setLoading] = useState(false);
+    
+    return (
+      <div className="flex gap-2">
+        {order.status === 'pending' && (
+          <button 
+            onClick={() => handleProcessOrder(order._id)}
+            disabled={loading}
+            className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? 'Dispatching...' : 'Dispatch Order'}
+          </button>
+        )}
+        {order.status === 'processing' && (
+          <button 
+            onClick={() => handleStatusChange(order._id, 'completed')}
+            disabled={loading}
+            className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 disabled:opacity-50"
+          >
+            {loading ? 'Completing...' : 'Complete Order'}
+          </button>
+        )}
+        {order.status !== 'completed' && order.status !== 'cancelled' && (
+          <button 
+            onClick={() => handleStatusChange(order._id, 'cancelled')}
+            disabled={loading}
+            className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 disabled:opacity-50"
+          >
+            {loading ? 'Cancelling...' : 'Cancel Order'}
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  // Filter orders based on search query
+  const filteredOrders = orders.filter(order => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      order._id.toString().includes(searchLower) ||
+      order.status.toLowerCase().includes(searchLower) ||
+      order.productEntries.some(entry => 
+        entry.product?.name?.toLowerCase().includes(searchLower) ||
+        entry.name?.toLowerCase().includes(searchLower)
+      ) ||
+      order.platform?.title?.toLowerCase().includes(searchLower) ||
+      order.platform?.platform?.toLowerCase().includes(searchLower) ||
+      order.courier?.name?.toLowerCase().includes(searchLower)
+    );
+  });
+
   if (loading) return <div className="text-gray-900 dark:text-white">Loading orders...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
-    <>
+    <div className="w-full max-w-full">
+      {/* Search Bar */}
+      <div className="mb-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search orders by ID, status, product, platform, or courier..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-2 pl-10 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-[#1a73e8] focus:border-[#1a73e8]"
+          />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
       {/* Stats Bar */}
       {/* <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0 justify-between mb-6 overflow-x-auto">
         <div className="flex items-center min-w-[220px] mr-8 relative">
@@ -239,60 +320,62 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
         </div>
       </div> */}
       {/* Orders Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead>
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Order ID</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Products</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Store</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Platform</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Courier</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created At</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {orders.map((order) => (
-              <tr key={order._id}>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">#{order._id}</td>
-                <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
-                  <div className="space-y-1">
-                    {order.productEntries.map((entry, index) => (
-                      <div key={index} className="flex justify-between items-center">
-                        <span className="text-gray-900 dark:text-white">Product #{entry.product}</span>
-                        <span className="text-gray-500 dark:text-gray-400 ml-2">x{entry.quantity}</span>
-                      </div>
-                    ))}
-                  </div>
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  Store #{order.store}
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  Platform #{order.platform}
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  {order.courier ? `Courier #${order.courier}` : '-'}
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm">
-                  <button
-                    onClick={() => handleStatusClick(order._id, order.status)}
-                    disabled={statusLoading[order._id]}
-                    className={`inline-block px-2 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors ${getStatusStyles(order.status)} hover:opacity-80 disabled:opacity-50`}
-                  >
-                    {statusLoading[order._id] ? 'Updating...' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                  </button>
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  {new Date(order.createdAt).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="w-full overflow-hidden">
+        <div className="overflow-x-auto">
+          <div className="inline-block min-w-full align-middle">
+            <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-800">
+                  <tr>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Order ID</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Summary</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">From</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Courier</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Created At</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredOrders.map((order) => (
+                    <tr key={order._id}>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">#{order.orderid || order._id}</td>
+                      <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
+                        <div className="space-y-1">
+                          {order.productEntries.map((entry, index) => (
+                            <div key={index} className="flex justify-between items-center">
+                              <span className="text-gray-900 dark:text-white">{entry.product?.name || `${entry.name}`}</span>
+                              <span className="text-gray-500 dark:text-gray-400 ml-2">x{entry.quantity}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {order.platform?.title || order.platform?.platform || `${order.platform}`}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {order.courier ? (order.courier?.name || `DUMMY_COURIER`) : '-'}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm">
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusStyles(order.status)}`}>
+                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm">
+                        <ActionButtons order={order} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

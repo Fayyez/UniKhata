@@ -32,7 +32,7 @@ const DashboardPage: React.FC = () => {
   const { stores, loading: storesLoading, error: storesError } = useSelector((state: RootState) => state.store);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
-  const [deleteStoreId, setDeleteStoreId] = useState<number | null>(null);
+  const [deleteStoreId, setDeleteStoreId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -93,7 +93,7 @@ const DashboardPage: React.FC = () => {
     navigate('/login');
   };
 
-  const handleDeleteStore = async (id: number) => {
+  const handleDeleteStore = async (id: string) => {
     try {
       await dispatch(deleteStore(id)).unwrap();
       setIsDeleteModalOpen(false);
@@ -103,7 +103,7 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const openDeleteModal = (storeId: number) => {
+  const openDeleteModal = (storeId: string) => {
     setDeleteStoreId(storeId);
     setIsDeleteModalOpen(true);
   };
@@ -152,7 +152,7 @@ const DashboardPage: React.FC = () => {
         onLogout={handleLogout}
       />
       <div className="flex">
-        <Sidebar isOpen={isSidebarOpen} stores={stores} />
+        <Sidebar isOpen={isSidebarOpen} stores={stores as any} />
 
         <div className="flex-1 pt-16 transition-all duration-200">
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">

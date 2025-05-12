@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-async function sendEmail(to, subject, body) {
+async function sendEmail(to, subject, body, html = false) {
     const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -11,16 +11,26 @@ async function sendEmail(to, subject, body) {
     }
     });
 
-    const mailOptions = {
-        from: '"' + process.env.EMAIL_UNAME + '" <' + process.env.EMAIL_ADDR + '>', // Sender name and email
-        to,
-        subject,
-        text: body,
-    };
+    let mailOptions;
+
+    if (html) {
+        mailOptions = {
+            from: '"' + process.env.EMAIL_UNAME + '" <' + process.env.EMAIL_ADDR + '>', // Sender name and email
+            to,
+            subject,
+            html,
+        };
+    } else {
+        mailOptions = {
+            from: '"' + process.env.EMAIL_UNAME + '" <' + process.env.EMAIL_ADDR + '>', // Sender name and email
+            to,
+            subject,
+            text: body,
+        };
+    }
 
     try {
-        const info = await transporter.sendMail(mailOptions);
-        // console.log('Email sent:', info.response);
+        await transporter.sendMail(mailOptions);
     } catch (error) {
         console.error('Error sending email:', error);
     }

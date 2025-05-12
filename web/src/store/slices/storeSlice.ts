@@ -1,12 +1,36 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '../../utils/axios';
 
+export interface EcommerceIntegration {
+  _id: string;
+  store: string;
+  title: string;
+  platform: string;
+  email: string;
+  apiEndpoint: string;
+  token: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CourierIntegration {
+  _id: string;
+  store: string;
+  title: string;
+  courierName: string;
+  emailOrCredential: string;
+  apiEndpoint: string;
+  token: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 interface Store {
-  _id: number;
+  _id: string;
   name: string;
-  owner: number;
-  eCommerceIntegrations?: number[];
-  courierIntegrations?: number[];
+  owner: string;
+  eCommerceIntegrations?: EcommerceIntegration[];
+  courierIntegrations?: CourierIntegration[];
   isDeleted?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -14,12 +38,14 @@ interface Store {
 
 interface StoreState {
   stores: Store[];
+  currentStore: Store | null;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: StoreState = {
   stores: [],
+  currentStore: null,
   loading: false,
   error: null
 };
@@ -73,7 +99,7 @@ export const createStore = createAsyncThunk(
 
 export const updateStore = createAsyncThunk(
   'store/updateStore',
-  async ({ id, storeData }: { id: number; storeData: Partial<Store> }, { rejectWithValue }) => {
+  async ({ id, storeData }: { id: string; storeData: Partial<Store> }, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.patch(`/stores/${id}`, storeData);
       return response.data.store;
@@ -85,12 +111,25 @@ export const updateStore = createAsyncThunk(
 
 export const deleteStore = createAsyncThunk(
   'store/deleteStore',
-  async (id: number, { rejectWithValue }) => {
+  async (id: string, { rejectWithValue }) => {
     try {
       await axiosInstance.delete(`/stores/${id}`);
       return id;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete store');
+    }
+  }
+);
+
+export const getStoreById = createAsyncThunk(
+  'store/getStoreById',
+  async (storeId: string, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/stores/${storeId}`);
+      console.log('Store by ID response:', response.data);
+      return response.data.store;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch store');
     }
   }
 );
@@ -101,6 +140,9 @@ const storeSlice = createSlice({
   reducers: {
     clearStoreError: (state) => {
       state.error = null;
+    },
+    clearCurrentStore: (state) => {
+      state.currentStore = null;
     }
   },
   extraReducers: (builder) => {
@@ -149,6 +191,10 @@ const storeSlice = createSlice({
         if (index !== -1) {
           state.stores[index] = action.payload;
         }
+        // Also update currentStore if it's the same store
+        if (state.currentStore?._id === action.payload._id) {
+          state.currentStore = action.payload;
+        }
       })
       .addCase(updateStore.rejected, (state, action) => {
         state.loading = false;
@@ -166,9 +212,23 @@ const storeSlice = createSlice({
       .addCase(deleteStore.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      // Get Store by ID
+      .addCase(getStoreById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getStoreById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentStore = action.payload;
+      })
+      .addCase(getStoreById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        state.currentStore = null;
       });
   }
 });
 
-export const { clearStoreError } = storeSlice.actions;
+export const { clearStoreError, clearCurrentStore } = storeSlice.actions;
 export default storeSlice.reducer; 

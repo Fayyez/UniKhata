@@ -13,7 +13,7 @@ const CreateStorePage: React.FC = () => {
   const { loading, error } = useSelector((state: RootState) => state.store);
   const { user, loading: authLoading } = useSelector((state: RootState) => state.auth);
   const { stores } = useSelector((state: RootState) => state.store);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const navigate = useNavigate();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   
@@ -24,6 +24,21 @@ const CreateStorePage: React.FC = () => {
     'bg-[#e37400]', // Orange
     'bg-[#9334e6]', // Purple
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    navigate('/login');
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch user info when component mounts
   useEffect(() => {
@@ -177,9 +192,10 @@ const CreateStorePage: React.FC = () => {
         userEmail={user.email}
         userImage={user.picture}
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        onLogout={handleLogout}
       />
       <div className="flex">
-        <Sidebar isOpen={isSidebarOpen} stores={stores} />
+        <Sidebar isOpen={isSidebarOpen} stores={stores as any} />
         
         <div className="flex-1 pt-16 transition-all duration-200">
           <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">

@@ -1,34 +1,45 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import OrdersTab from '../components/OrdersTab';
 import ProductsTab from '../components/ProductsTab';
 import OrdersAnalyticsTab from '../components/OrdersAnalyticsTab';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../store';
+import IntegrationTab from '../components/IntegrationTab';
+import Calculator from '../components/Calculator';
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState, AppDispatch } from '../store';
+import { checkLowStockProducts, sendLowStockEmail } from '../store/slices/productSlice';
 import UnauthorizedPage from "./UnauthorizedPage";
 
 const StorePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const [activeTab, setActiveTab] = useState('orders');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [ordersRange, setOrdersRange] = useState('Today');
-  const [isRangeDropdownOpen, setIsRangeDropdownOpen] = useState(false);
-  const rangeOptions = ['Today', 'Week', 'Month', 'Year', 'All time'];
-  const rangeBtnRef = useRef<HTMLButtonElement>(null);
-  const [dropdownPos, setDropdownPos] = useState<{top: number, left: number, width: number}>({top: 0, left: 0, width: 0});
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
-  const [activeQuick, setActiveQuick] = useState<string>('Today');
   const { user, loading: authLoading } = useSelector((state: RootState) => state.auth);
   const { stores } = useSelector((state: RootState) => state.store);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   // Find the current store - convert both IDs to strings for comparison
   const currentStore = stores.find(store => String(store._id) === id);
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    navigate('/login');
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (user) setIsAuthorized(true);
@@ -46,78 +57,43 @@ const StorePage: React.FC = () => {
     }
   }, [id, currentStore, navigate, stores]);
 
+  // Add low stock check on store initialization
   useEffect(() => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
-    setStartDate(todayStr);
-    setEndDate(todayStr);
-    setActiveQuick('Today');
-  }, []);
+    const checkLowStock = async () => {
+      if (id) {
+        try {
+          const result = await dispatch(checkLowStockProducts(id)).unwrap();
+          if (result.length > 0 && currentStore?.owner) {
+            // Create email content
+            const productList = result
+              .map(product => `- ${product.name}: ${product.stockAmount} items remaining`)
+              .join('\n');
 
-  // Helper functions for quick-selects
-  const setToday = () => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
-    setStartDate(todayStr);
-    setEndDate(todayStr);
-    setActiveQuick('Today');
-  };
-  const setThisWeek = () => {
-    const today = new Date();
-    const day = today.getDay();
-    const diffToMonday = today.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
-    const monday = new Date(today.setDate(diffToMonday));
-    const yyyy = monday.getFullYear();
-    const mm = String(monday.getMonth() + 1).padStart(2, '0');
-    const dd = String(monday.getDate()).padStart(2, '0');
-    const mondayStr = `${yyyy}-${mm}-${dd}`;
-    const today2 = new Date();
-    const yyyy2 = today2.getFullYear();
-    const mm2 = String(today2.getMonth() + 1).padStart(2, '0');
-    const dd2 = String(today2.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy2}-${mm2}-${dd2}`;
-    setStartDate(mondayStr);
-    setEndDate(todayStr);
-    setActiveQuick('This Week');
-  };
-  const setThisMonth = () => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const firstDay = `${yyyy}-${mm}-01`;
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
-    setStartDate(firstDay);
-    setEndDate(todayStr);
-    setActiveQuick('This Month');
-  };
-  const setThisYear = () => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const firstDay = `${yyyy}-01-01`;
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
-    setStartDate(firstDay);
-    setEndDate(todayStr);
-    setActiveQuick('This Year');
-  };
+            const emailContent = `
+              <h2>Low Stock Alert for ${currentStore.name}</h2>
+              <p>The following products are running low on stock:</p>
+              <pre>${productList}</pre>
+              <p>Please restock these items as soon as possible to avoid running out of stock.</p>
+              <p>Best regards,<br>UniKhata Team</p>
+            `;
 
-  // If user manually changes dates, clear quick selection
-  const handleStartDateChange = (val: string) => {
-    setStartDate(val);
-    setActiveQuick('');
-  };
-  const handleEndDateChange = (val: string) => {
-    setEndDate(val);
-    setActiveQuick('');
-  };
+            // Send email using the action
+            await dispatch(sendLowStockEmail({
+              email: user.email,
+              subject: `Low Stock Alert - ${currentStore.name}`,
+              message: emailContent
+            })).unwrap();
+          }
+        } catch (error) {
+          console.error('Failed to check low stock products:', error);
+        }
+      }
+    };
+
+    if (currentStore) {
+      checkLowStock();
+    }
+  }, [id, currentStore, dispatch]);
 
   const tabs = [
     { id: 'orders', label: 'Orders', icon: (
@@ -145,11 +121,11 @@ const StorePage: React.FC = () => {
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
       </svg>
     )},
-    { id: 'edit', label: 'Edit', icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-      </svg>
-    )}
+    // { id: 'edit', label: 'Edit', icon: (
+    //   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    //     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    //   </svg>
+    // )}
   ];
 
   if (isAuthorized === false) {
@@ -169,9 +145,10 @@ const StorePage: React.FC = () => {
       <Navbar 
         userName={user?.name || "User"}
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        onLogout={handleLogout}
       />
       <div className="flex">
-        <Sidebar isOpen={isSidebarOpen} stores={stores} />
+        <Sidebar isOpen={isSidebarOpen} stores={stores as any} />
         
         <div className="flex-1 pt-16 transition-all duration-200">
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -262,11 +239,15 @@ const StorePage: React.FC = () => {
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                 {/* Content will be rendered here based on activeTab */}
                 {activeTab === 'orders' ? (
-                  <OrdersTab storeId={Number(id)} userId={user.id} />
+                  <OrdersTab storeId={id} userId={user.id} />
                 ) : activeTab === 'products' ? (
                   <ProductsTab storeId={id} userId={user.id} />
                 ) : activeTab === 'analytics' ? (
-                  <OrdersAnalyticsTab />
+                  <OrdersAnalyticsTab storeId={id || ''} />
+                ) : activeTab === 'integration' ? (
+                  <IntegrationTab storeId={id || ''} />
+                ) : activeTab === 'ledger' ? (
+                  <Calculator />
                 ) : (
                   <div className="text-center text-gray-500 dark:text-gray-400">
                     {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} content will be displayed here

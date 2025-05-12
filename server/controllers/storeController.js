@@ -25,11 +25,11 @@ export const getAllStores = async (req, res) => {
 // GET /stores/:sid : Returns the store with id = sid
 export const getStoreById = async (req, res) => {
     try {
-        const sid = Number(req.params.sid);
+        const sid = req.params.sid;
         if (!sid) {
             return res.status(400).json({ message: 'Invalid store id' });
         }
-        const store = await Store.findOne({ _id: sid, isDeleted: false });
+        const store = await Store.findOne({ _id: sid, isDeleted: false }).populate('eCommerceIntegrations').populate('courierIntegrations');
         if (!store) {
             return res.status(404).json({ message: 'Store not found' });
         }
@@ -64,12 +64,22 @@ export const createStore = async (req, res) => {
         const ecom = new EcommerceIntegration({
             store: newStore._id,
             platform: "DUMMY_STORE",
-            email: "test@test.com",
+            email: "fayyez2056@gmail.com",
             apiEndpoint: "http://localhost:4001",
+            token: "test_token"
+        })
+
+        const courier =new CourierIntegration({
+            store: newStore._id,
+            title: "DUMMY_COURIER",
+            courierName: "DUMMY_COURIER",
+            emailOrCredential: "fayyez2056@gmail.com",
+            apiEndpoint: "http://localhost:4002",
             token: "test_token"
         })
         // set newStores 
         newStore.eCommerceIntegrations.push(ecom._id);
+        newStore.courierIntegrations.push(courier._id);
         console.log('New store created:', newStore._id);
         newStore.save()
         .then(savedStore => {
@@ -86,6 +96,16 @@ export const createStore = async (req, res) => {
                 console.log("error");
                 throw error;
             })
+
+            courier.save()
+            .then(savedCourier => {
+                console.log("courier saved with success");
+            })
+            .catch(error => {
+                console.log("error");
+                throw error;
+            })
+
         }).catch(error => {
             console.log("error");
             throw error;
@@ -123,7 +143,7 @@ export const updateStore = async (req, res) => {
 // DELETE /stores/:sid : Soft delete a store
 export const deleteStore = async (req, res) => {
     try {
-        const sid = Number(req.params.sid);
+        const sid = req.params.sid;
         if (!sid) {
             return res.status(400).json({ message: 'Invalid store id' });
         }

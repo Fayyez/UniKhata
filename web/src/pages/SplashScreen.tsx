@@ -5,9 +5,9 @@ const SplashScreen: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirect to login page after 2 seconds
+    // Redirect to home page after 2 seconds
     const timer = setTimeout(() => {
-      navigate('/login');
+      navigate('/home');
     }, 2000);
 
     return () => clearTimeout(timer);

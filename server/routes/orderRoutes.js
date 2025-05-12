@@ -1,5 +1,5 @@
 import express from 'express';
-import { getOrders, getOrderById, getNewOrders, updateOrder, deleteOrder, changeOrderStatus } from '../controllers/orderController.js';
+import { getOrders, getOrderById, getNewOrders, updateOrder, deleteOrder, changeOrderStatus, dispatchOrder, getOrderAnalytics } from '../controllers/orderController.js';
 import passport from 'passport';
 const router = express.Router();
 
@@ -16,10 +16,12 @@ const router = express.Router();
 // ✅ PATCH orders/:oid {order_fields} : Updates the order with id = oid (200).
 // ✅ DELETE orders/:oid {} : Soft deletes an order with id = oid (200).
 
+router.get('/analytics/:sid', passport.authenticate('jwt', { session: false }), getOrderAnalytics);
 router.get('/', passport.authenticate('jwt', { session: false }), getOrders);
-router.get('/new/', passport.authenticate('jwt', { session: false }), getNewOrders);
+router.get('/new', passport.authenticate('jwt', { session: false }), getNewOrders);
 router.get('/:oid', passport.authenticate('jwt', { session: false }), getOrderById);
-router.patch('/:oid', passport.authenticate('jwt', { session: false }), updateOrder);
+router.patch('/dispatch', passport.authenticate('jwt', { session: false }), dispatchOrder);
+router.patch('/status/:oid', passport.authenticate('jwt', { session: false }), changeOrderStatus);
 router.delete('/:oid', passport.authenticate('jwt', { session: false }), deleteOrder);
 router.post('/', passport.authenticate('jwt', { session: false }), changeOrderStatus);
 
