@@ -19,6 +19,7 @@
 - Email Sending Services
 - Logging Middleware
 - Graphics Designer
+- Designed Order Analaytics and Ledger Calculator
 
 ## Huzyefa Saqib
 - UI/UX Designer

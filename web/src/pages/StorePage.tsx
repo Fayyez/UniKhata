@@ -234,9 +234,7 @@ const StorePage: React.FC = () => {
                 ) : activeTab === 'products' ? (
                   <ProductsTab storeId={id} userId={user.id} />
                 ) : activeTab === 'analytics' ? (
-                  <OrdersAnalyticsTab />
-                ) : activeTab === 'integration' ? (
-                  <IntegrationTab storeId={id} />
+                  <OrdersAnalyticsTab storeId={id || ''} />
                 ) : activeTab === 'ledger' ? (
                   <Calculator />
                 ) : (
