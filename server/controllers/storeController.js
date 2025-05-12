@@ -143,7 +143,7 @@ export const updateStore = async (req, res) => {
 // DELETE /stores/:sid : Soft delete a store
 export const deleteStore = async (req, res) => {
     try {
-        const sid = Number(req.params.sid);
+        const sid = req.params.sid;
         if (!sid) {
             return res.status(400).json({ message: 'Invalid store id' });
         }
