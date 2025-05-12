@@ -25,11 +25,11 @@ export const getAllStores = async (req, res) => {
 // GET /stores/:sid : Returns the store with id = sid
 export const getStoreById = async (req, res) => {
     try {
-        const sid = Number(req.params.sid);
+        const sid = req.params.sid;
         if (!sid) {
             return res.status(400).json({ message: 'Invalid store id' });
         }
-        const store = await Store.findOne({ _id: sid, isDeleted: false });
+        const store = await Store.findOne({ _id: sid, isDeleted: false }).populate('eCommerceIntegrations').populate('courierIntegrations');
         if (!store) {
             return res.status(404).json({ message: 'Store not found' });
         }
@@ -143,7 +143,7 @@ export const updateStore = async (req, res) => {
 // DELETE /stores/:sid : Soft delete a store
 export const deleteStore = async (req, res) => {
     try {
-        const sid = Number(req.params.sid);
+        const sid = req.params.sid;
         if (!sid) {
             return res.status(400).json({ message: 'Invalid store id' });
         }

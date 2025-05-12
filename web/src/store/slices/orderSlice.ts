@@ -8,14 +8,25 @@ export interface OrderItem {
 }
 
 export interface Order {
-  _id: number;
+  _id: string;
+  orderid?: string;
   productEntries: Array<{
-    product: number;
+    product: {
+      _id: string;
+      name: string;
+    };
     quantity: number;
   }>;
-  store: number;
-  platform: number;
-  courier?: number;
+  store: string;
+  platform?: {
+    _id: string;
+    title: string;
+    platform: string;
+  };
+  courier?: {
+    _id: string;
+    name: string;
+  };
   isDeleted: boolean;
   status: string;
   createdAt: string;
@@ -57,7 +68,7 @@ export const fetchOrders = createAsyncThunk<Order[], FetchOrdersParams, { reject
   }
 );
 
-export const fetchOrderById = createAsyncThunk<Order, { storeId: number; orderId: number }, { rejectValue: string }>(
+export const fetchOrderById = createAsyncThunk<Order, { storeId: string; orderId: string }, { rejectValue: string }>(
   'order/fetchOrderById',
   async ({ storeId, orderId }, { rejectWithValue }) => {
     try {
@@ -69,7 +80,7 @@ export const fetchOrderById = createAsyncThunk<Order, { storeId: number; orderId
   }
 );
 
-export const createOrder = createAsyncThunk<Order, { storeId: number; data: Partial<Order> }, { rejectValue: string }>(
+export const createOrder = createAsyncThunk<Order, { storeId: string; data: Partial<Order> }, { rejectValue: string }>(
   'order/createOrder',
   async ({ storeId, data }, { rejectWithValue }) => {
     try {
@@ -81,7 +92,7 @@ export const createOrder = createAsyncThunk<Order, { storeId: number; data: Part
   }
 );
 
-export const updateOrder = createAsyncThunk<Order, { storeId: number; orderId: number; data: Partial<Order> }, { rejectValue: string }>(
+export const updateOrder = createAsyncThunk<Order, { storeId: string; orderId: string; data: Partial<Order> }, { rejectValue: string }>(
   'order/updateOrder',
   async ({ storeId, orderId, data }, { rejectWithValue }) => {
     try {
@@ -93,7 +104,7 @@ export const updateOrder = createAsyncThunk<Order, { storeId: number; orderId: n
   }
 );
 
-export const deleteOrder = createAsyncThunk<{ storeId: number; orderId: number }, { storeId: number; orderId: number }, { rejectValue: string }>(
+export const deleteOrder = createAsyncThunk<{ storeId: string; orderId: string }, { storeId: string; orderId: string }, { rejectValue: string }>(
   'order/deleteOrder',
   async ({ storeId, orderId }, { rejectWithValue }) => {
     try {
@@ -105,7 +116,7 @@ export const deleteOrder = createAsyncThunk<{ storeId: number; orderId: number }
   }
 );
 
-export const changeStatus = createAsyncThunk<Order, { oid: number; status: string }, { rejectValue: string }>(
+export const changeStatus = createAsyncThunk<Order, { oid: string; status: string }, { rejectValue: string }>(
   'order/changeStatus',
   async ({ oid, status }, { rejectWithValue }) => {
     try {
@@ -116,6 +127,21 @@ export const changeStatus = createAsyncThunk<Order, { oid: number; status: strin
       return response.data.order;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update order status');
+    }
+  }
+);
+
+export const dispatchOrder = createAsyncThunk<Order, { oid: string; sid: string }, { rejectValue: string }>(
+  'order/dispatchOrder',
+  async ({ oid, sid }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.patch(`/orders/dispatch`, { sid: sid, oid: oid });
+      if (!response.data.order) {
+        return rejectWithValue('Failed to dispatch order');
+      }
+      return response.data.order;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to dispatch order');
     }
   }
 );
@@ -196,7 +222,7 @@ const orderSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteOrder.fulfilled, (state, action: PayloadAction<{ storeId: number; orderId: number }>) => {
+      .addCase(deleteOrder.fulfilled, (state, action: PayloadAction<{ storeId: string; orderId: string }>) => {
         state.loading = false;
         state.orders = state.orders.filter(order => order._id !== action.payload.orderId);
         if (state.currentOrder?._id === action.payload.orderId) {
@@ -225,6 +251,25 @@ const orderSlice = createSlice({
       .addCase(changeStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to update order status';
+      })
+      // Dispatch Order
+      .addCase(dispatchOrder.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(dispatchOrder.fulfilled, (state, action: PayloadAction<Order>) => {
+        state.loading = false;
+        const index = state.orders.findIndex(order => order._id === action.payload._id);
+        if (index !== -1) {
+          state.orders[index] = action.payload;
+        }
+        if (state.currentOrder?._id === action.payload._id) {
+          state.currentOrder = action.payload;
+        }
+      })
+      .addCase(dispatchOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to dispatch order';
       });
   }
 });
