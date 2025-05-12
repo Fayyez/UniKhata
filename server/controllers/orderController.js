@@ -4,6 +4,7 @@ import axios from 'axios';
 import Product from '../models/Product.js';
 import createEStoreObjects from '../utils/estoreFactory.js';
 import DummyStore from '../integration/E-stores/DummyStore.js'; 
+import DummyCourier from '../integration/Couriers/DummyCourier.js';
 
 export const getOrders = async (req, res) => {
     try {
@@ -164,12 +165,12 @@ export const dispatchOrder = async (req, res) => {
             return res.status(404).json({ message: "Order not found" });
         }
 
-        if (order.status !== 'processing') {
-            return res.status(400).json({ message: "Order must be in processing status to be dispatched" });
+        if (order.status !== 'pending') {
+            return res.status(400).json({ message: "Order must be in pending status to be dispatched" });
         }
 
         // Fetch the store and populate courier integrations
-        const store = await Store.findById(sid).populate('courierIntegrations');
+        const store = await Store.findById(sid).populate('courierIntegrations').populate('eCommerceIntegrations');
         if (!store) {
             return res.status(404).json({ message: "Store not found" });
         }
@@ -180,24 +181,20 @@ export const dispatchOrder = async (req, res) => {
 
         // Import the courier factory function
         const createCourierObjects = (await import('../utils/courierFactory.js')).default;
-        
         // Create courier objects using the factory
         const courierObjects = createCourierObjects(store.courierIntegrations);
         
         if (courierObjects.length === 0) {
+            console.log("no courier objects found");
             return res.status(400).json({ message: "Failed to create courier objects" });
         }
-        
-        // For simplicity, use the first courier integration (in a real app, you might let the user select one)
-        const courier = courierObjects[0];
-        
+        const mydummy_courier = courierObjects[0];
+        console.log("this is the mydummy_courier", mydummy_courier instanceof DummyCourier);
         // Dispatch the order using the courier
-        const dispatchResult = await courier.dispatch(order);
-        
+        const dispatchResult = await mydummy_courier.dispatch(order);
         if (!dispatchResult.success) {
-            return res.status(500).json({ message: "Failed to dispatch order", error: dispatchResult.message });
+            return res.status(500).json({ message: "Failed to dispatch order bacause courier service is offline", error: dispatchResult.message });
         }
-        
         // Update the order status to 'dispatched' or similar
         order.status = 'dispatched';
         order.courier = store.courierIntegrations[0]._id; // Set the courier used

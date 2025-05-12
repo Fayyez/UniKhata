@@ -49,61 +49,8 @@ const initializeDataFiles = () => {
 };
 
 // Routes
-// Create a new order
-app.post('/api/orders', (req, res) => {
-    try {
-        const order = dispatchService.createOrder(req.body);
-        res.status(201).json(order);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// Get order status
-app.get('/api/orders/:orderId/status', (req, res) => {
-    try {
-        const status = trackingService.getOrderStatus(req.params.orderId);
-        res.json(status);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
-
-// Get order history
-app.get('/api/orders/:orderId/history', (req, res) => {
-    try {
-        const history = trackingService.getOrderHistory(req.params.orderId);
-        res.json(history);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
-
-// Check if order is cancelled
-app.get('/api/orders/:orderId/cancellation', (req, res) => {
-    try {
-        const result = trackingService.checkOrderCancellation(req.params.orderId);
-        res.json(result);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
-
-// Check if order is returned
-app.get('/api/orders/:orderId/return', (req, res) => {
-    try {
-        const result = trackingService.checkOrderReturn(req.params.orderId);
-        res.json(result);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Something went wrong!' });
-});
+app.use('/dispatch', dispatchService);
+app.use('/tracking', trackingService);
 
 // Start the server
 app.listen(PORT, () => {
