@@ -26,6 +26,12 @@ const ProfilePage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    navigate('/login');
+  };
+
   useEffect(() => {
     dispatch(fetchUserProfile());
   }, [dispatch]);
@@ -173,6 +179,7 @@ const ProfilePage: React.FC = () => {
         userName={profile?.name || 'User'}
         userImage={profile?.avatar}
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        onLogout={handleLogout}
       />
       <div className="flex">
         <Sidebar isOpen={isSidebarOpen} stores={stores as any} />

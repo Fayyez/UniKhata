@@ -26,6 +26,12 @@ const StorePage: React.FC = () => {
   // Find the current store - convert both IDs to strings for comparison
   const currentStore = stores.find(store => String(store._id) === id);
 
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    navigate('/login');
+  };
+
   useEffect(() => {
     if (user) setIsAuthorized(true);
     else if (!authLoading) setIsAuthorized(false);
@@ -130,6 +136,7 @@ const StorePage: React.FC = () => {
       <Navbar 
         userName={user?.name || "User"}
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        onLogout={handleLogout}
       />
       <div className="flex">
         <Sidebar isOpen={isSidebarOpen} stores={stores as any} />

@@ -25,6 +25,12 @@ const CreateStorePage: React.FC = () => {
     'bg-[#9334e6]', // Purple
   ];
 
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    navigate('/login');
+  };
+
   // Fetch user info when component mounts
   useEffect(() => {
     if (!user) {
@@ -177,6 +183,7 @@ const CreateStorePage: React.FC = () => {
         userEmail={user.email}
         userImage={user.picture}
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        onLogout={handleLogout}
       />
       <div className="flex">
         <Sidebar isOpen={isSidebarOpen} stores={stores as any} />
