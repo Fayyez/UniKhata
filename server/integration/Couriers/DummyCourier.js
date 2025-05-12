@@ -3,6 +3,7 @@
 import ParentCourier from "./ParentCourier.js";
 import { DUMMY_COURIER } from "../../utils/constants.js";
 import CourierIntegration from "../../models/CourierIntegration.js";
+import axios from "axios";
 
 class DummyCourier extends ParentCourier {
 
@@ -32,8 +33,18 @@ class DummyCourier extends ParentCourier {
     async dispatch(order) {
         // TODO: Implement order dispatch functionality for the dummy courier service
         // This should communicate with the courier API to arrange pickup and delivery
-        console.log(`Attempting to dispatch order ${order._id} via ${this.title}`);
-        return { success: true, message: "Order dispatched successfully" };
+        console.log(`Attempting to dispatch order`);
+        const dispatch_path = this.baseUrl + '/dispatch'
+        // give a post call to this endpoint with order in body
+        axios.post(dispatch_path, order)
+        .then(response => {
+            console.log("response", response);
+            return { success: true, message: "Order dispatched successfully" };
+        })
+        .catch(error => {
+            console.log("error", error);
+            return { success: false, message: "Order dispatch failed" };
+        })
     }
 }
 

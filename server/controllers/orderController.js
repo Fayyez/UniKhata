@@ -192,21 +192,17 @@ export const dispatchOrder = async (req, res) => {
         console.log("this is the mydummy_courier", mydummy_courier instanceof DummyCourier);
         // Dispatch the order using the courier
         const dispatchResult = await mydummy_courier.dispatch(order);
-        if (!dispatchResult.success) {
-            return res.status(500).json({ message: "Failed to dispatch order bacause courier service is offline", error: dispatchResult.message });
-        }
         // Update the order status to 'dispatched' or similar
         order.status = 'dispatched';
         order.courier = store.courierIntegrations[0]._id; // Set the courier used
-        await order.save();
+        const savedorder2 = await order.save();
         
         res.status(200).json({ 
-            message: "Order dispatched successfully", 
-            order: order, 
-            dispatchDetails: dispatchResult 
+            message: "Order dispatched successfully",
+            order: savedorder2
         });
     } catch (error) {
-        console.error("Error dispatching order:", error);
+        console.error("Error dispatching order here");
         res.status(500).json({ message: "Error dispatching order", error: error.message });
     }
 };

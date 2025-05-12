@@ -71,7 +71,7 @@ export const createStore = async (req, res) => {
 
         const courier =new CourierIntegration({
             store: newStore._id,
-            title: "my dummy courier",
+            title: "DUMMY_COURIER",
             courierName: "DUMMY_COURIER",
             emailOrCredential: "fayyez2056@gmail.com",
             apiEndpoint: "http://localhost:4002",

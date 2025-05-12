@@ -351,7 +351,7 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ storeId, userId }) => {
                   {order.platform?.title || order.platform?.platform || `${order.platform}`}
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  {order.courier ? (order.courier?.name || `Courier #${order.courier}`) : '-'}
+                  {order.courier ? (order.courier?.name || `DUMMY_COURIER`) : '-'}
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap text-sm">
                   <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusStyles(order.status)}`}>

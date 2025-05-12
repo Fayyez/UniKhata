@@ -137,6 +137,7 @@ export const dispatchOrder = createAsyncThunk<Order, { oid: string; sid: string 
     try {
       const response = await axiosInstance.patch(`/orders/dispatch`, { sid: sid, oid: oid });
       if (!response.data.order) {
+        console.log("dipatch failing due to first if");
         return rejectWithValue('Failed to dispatch order');
       }
       return response.data.order;
