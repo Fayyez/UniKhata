@@ -9,7 +9,7 @@ import type { AppDispatch, RootState } from '../store';
 import type { UserProfile } from '../store/slices/userSlice';
 
 const ProfilePage: React.FC = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,6 +31,15 @@ const ProfilePage: React.FC = () => {
     localStorage.removeItem('refreshToken');
     navigate('/login');
   };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     dispatch(fetchUserProfile());

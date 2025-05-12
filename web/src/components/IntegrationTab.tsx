@@ -39,7 +39,7 @@ const IntegrationTab: React.FC<IntegrationTabProps> = ({ storeId }) => {
     <div className="space-y-12">
       {/* E-commerce Integrations Section */}
       <div>
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">E-commerce Integrations</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -48,14 +48,14 @@ const IntegrationTab: React.FC<IntegrationTabProps> = ({ storeId }) => {
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-[#1a73e8] text-white rounded-lg hover:bg-[#1557b0] transition-colors flex items-center gap-2 shadow-sm"
+            className="px-4 py-2 bg-[#1a73e8] text-white rounded-lg hover:bg-[#1557b0] transition-colors flex items-center gap-2 shadow-sm w-full sm:w-auto justify-center"
           >
             <span>+</span>
             <span>Add Integration</span>
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {currentStore?.eCommerceIntegrations?.map((integration: EcommerceIntegration) => (
             <div
               key={integration._id}
@@ -79,17 +79,17 @@ const IntegrationTab: React.FC<IntegrationTabProps> = ({ storeId }) => {
                   Active
                 </span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center text-gray-600 dark:text-gray-300">
                   <span className="w-24 text-gray-500 dark:text-gray-400">Email:</span>
-                  <span className="font-medium">{integration.email}</span>
+                  <span className="font-medium truncate">{integration.email}</span>
                 </div>
                 <div className="flex items-center text-gray-600 dark:text-gray-300">
                   <span className="w-24 text-gray-500 dark:text-gray-400">API:</span>
                   <span className="font-medium truncate">{integration.apiEndpoint}</span>
                 </div>
                 {integration.updatedAt && (
-                  <div className="col-span-1 md:col-span-2 pt-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700">
+                  <div className="col-span-1 sm:col-span-2 pt-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700">
                     Last updated: {new Date(integration.updatedAt).toLocaleString()}
                   </div>
                 )}
@@ -101,7 +101,7 @@ const IntegrationTab: React.FC<IntegrationTabProps> = ({ storeId }) => {
 
       {/* Courier Integrations Section */}
       <div>
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Courier Integrations</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -110,14 +110,14 @@ const IntegrationTab: React.FC<IntegrationTabProps> = ({ storeId }) => {
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-[#1a73e8] text-white rounded-lg hover:bg-[#1557b0] transition-colors flex items-center gap-2 shadow-sm"
+            className="px-4 py-2 bg-[#1a73e8] text-white rounded-lg hover:bg-[#1557b0] transition-colors flex items-center gap-2 shadow-sm w-full sm:w-auto justify-center"
           >
             <span>+</span>
             <span>Add Integration</span>
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {currentStore?.courierIntegrations?.map((integration: CourierIntegration) => (
             <div
               key={integration._id}
@@ -141,17 +141,17 @@ const IntegrationTab: React.FC<IntegrationTabProps> = ({ storeId }) => {
                   Active
                 </span>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center text-gray-600 dark:text-gray-300">
                   <span className="w-24 text-gray-500 dark:text-gray-400">Credential:</span>
-                  <span className="font-medium">{integration.emailOrCredential}</span>
+                  <span className="font-medium truncate">{integration.emailOrCredential}</span>
                 </div>
                 <div className="flex items-center text-gray-600 dark:text-gray-300">
                   <span className="w-24 text-gray-500 dark:text-gray-400">API:</span>
                   <span className="font-medium truncate">{integration.apiEndpoint}</span>
                 </div>
                 {integration.updatedAt && (
-                  <div className="col-span-1 md:col-span-2 pt-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700">
+                  <div className="col-span-1 sm:col-span-2 pt-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700">
                     Last updated: {new Date(integration.updatedAt).toLocaleString()}
                   </div>
                 )}
@@ -164,7 +164,7 @@ const IntegrationTab: React.FC<IntegrationTabProps> = ({ storeId }) => {
       {/* Add Integration Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 w-full max-w-md mx-2">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
             <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
               Add New Integration
             </h2>

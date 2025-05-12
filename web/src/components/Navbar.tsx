@@ -48,7 +48,7 @@ const Navbar: React.FC<NavbarProps> = ({ userName, userEmail, userImage, onMenuC
           
           <div className="flex items-center space-x-4">
             {userEmail && (
-              <span className="text-sm text-gray-600 dark:text-gray-300">
+              <span className="hidden md:block text-sm text-gray-600 dark:text-gray-300">
                 {userEmail}
               </span>
             )}

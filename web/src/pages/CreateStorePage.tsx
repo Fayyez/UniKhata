@@ -13,7 +13,7 @@ const CreateStorePage: React.FC = () => {
   const { loading, error } = useSelector((state: RootState) => state.store);
   const { user, loading: authLoading } = useSelector((state: RootState) => state.auth);
   const { stores } = useSelector((state: RootState) => state.store);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const navigate = useNavigate();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   
@@ -30,6 +30,15 @@ const CreateStorePage: React.FC = () => {
     localStorage.removeItem('refreshToken');
     navigate('/login');
   };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch user info when component mounts
   useEffect(() => {

@@ -16,7 +16,7 @@ const StorePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const [activeTab, setActiveTab] = useState('orders');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, loading: authLoading } = useSelector((state: RootState) => state.auth);
@@ -31,6 +31,15 @@ const StorePage: React.FC = () => {
     localStorage.removeItem('refreshToken');
     navigate('/login');
   };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (user) setIsAuthorized(true);
@@ -235,6 +244,8 @@ const StorePage: React.FC = () => {
                   <ProductsTab storeId={id} userId={user.id} />
                 ) : activeTab === 'analytics' ? (
                   <OrdersAnalyticsTab storeId={id || ''} />
+                ) : activeTab === 'integration' ? (
+                  <IntegrationTab storeId={id || ''} />
                 ) : activeTab === 'ledger' ? (
                   <Calculator />
                 ) : (
